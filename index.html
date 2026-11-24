@@ -131,41 +131,96 @@
             background: #3f3f46;
             border-radius: 2px;
         }
+
+        /* 新增：高复苏度血丝裂纹屏幕警告滤镜 */
+        .revival-vignette {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 45;
+            transition: opacity 0.6s ease, box-shadow 0.6s ease;
+            opacity: 0;
+        }
+        .revival-danger-high {
+            opacity: 1;
+            box-shadow: inset 0 0 110px rgba(185, 28, 28, 0.75), inset 0 0 30px rgba(0, 0, 0, 0.9);
+            animation: heartbeat 1.4s infinite ease-in-out;
+        }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            15% { transform: scale(1.008); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.012); }
+        }
+
+        /* 新增：鬼画灰白同化滤镜 */
+        .grayscale-curse {
+            filter: grayscale(0.85) contrast(1.25);
+        }
+
+        /* 新增：灵异实体悬浮呼吸与鬼火粒子 */
+        @keyframes ghostFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-ghost-float {
+            animation: ghostFloat 3.5s infinite ease-in-out;
+        }
+
+        /* 新增：手牌被诅咒燃烧边缘 */
+        .cursed-card {
+            border-color: #991b1b !important;
+            background: linear-gradient(145deg, #2a0a0a 0%, #09090b 100%) !important;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.5) !important;
+        }
+
+        /* 新增：Canvas 特效层 */
+        #fxCanvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 38;
+        }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col justify-between relative">
+<body id="gameBody" class="h-screen w-screen flex flex-col justify-between relative transition-all duration-700">
     <!-- 胶片噪点层 -->
     <div class="noise-overlay"></div>
+
+    <!-- 灵异粒子与光束Canvas特效层 -->
+    <canvas id="fxCanvas"></canvas>
+
+    <!-- 高复苏度血丝濒死滤镜 -->
+    <div id="revivalVignette" class="revival-vignette"></div>
 
     <!-- 鬼域环境光效层 -->
     <div id="domainOverlay" class="fixed inset-0 pointer-events-none transition-opacity duration-700 opacity-0 z-10"></div>
 
     <!-- 顶部栏：敌方驭鬼者状态 -->
-    <header class="w-full px-3 pt-2 pb-1 sm:px-6 sm:pt-3 flex flex-col gap-2 z-20 bg-gradient-to-b from-black/90 to-transparent">
+    <header class="w-full px-3 pt-2 pb-1 sm:px-6 sm:pt-3 flex flex-col gap-2 z-20 bg-gradient-to-b from-black/95 to-transparent">
         <div class="flex items-center justify-between max-w-5xl mx-auto w-full">
             <!-- 敌方信息 -->
             <div class="flex items-center gap-2 sm:gap-3">
-                <div id="enemyAvatar" class="relative w-11 h-11 sm:w-14 sm:h-14 rounded-lg border-2 border-red-900/80 bg-zinc-900 flex items-center justify-center shadow-lg overflow-hidden shrink-0">
-                    <svg class="w-7 h-7 sm:w-9 sm:h-9 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M12 2C7.58 2 4 5.58 4 10v9l3-2 2.5 2 2.5-2 2.5 2 2.5-2 3 2v-9c0-4.42-3.58-8-8-8z"/>
-                        <circle cx="9" cy="10" r="1.5" fill="currentColor"/>
-                        <circle cx="15" cy="10" r="1.5" fill="currentColor"/>
-                    </svg>
+                <div id="enemyAvatar" class="animate-ghost-float relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg border-2 border-red-900/90 bg-zinc-950 flex items-center justify-center shadow-[0_0_20px_rgba(185,28,28,0.4)] overflow-hidden shrink-0">
+                    <div id="enemySvgContainer" class="w-full h-full flex items-center justify-center">
+                        <!-- 动态绘制敌方专属恐怖剪影 -->
+                    </div>
                     <span id="enemyRankBadge" class="absolute bottom-0 right-0 bg-red-950 text-red-200 text-[9px] px-1 font-bold border-tl border-red-800">A级灵异</span>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <h2 id="enemyName" class="text-sm sm:text-base font-bold text-zinc-100 tracking-wider">敲门鬼·罗文松</h2>
+                        <span id="enemyDomainLevelBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-purple-950/90 border border-purple-700/70 text-purple-300 font-bold">鬼域: 1层</span>
                     </div>
                     <!-- 敌方数值条 -->
-                    <div class="flex flex-col gap-1 mt-1 w-36 sm:w-52">
+                    <div class="flex flex-col gap-1 mt-1 w-36 sm:w-56">
                         <!-- 生命/意识值 -->
                         <div class="flex items-center gap-1.5 text-[10px] sm:text-xs">
                             <span class="text-zinc-400 w-8">意识</span>
                             <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700/70">
                                 <div id="enemyHpBar" class="h-full bg-emerald-600 transition-all duration-300" style="width: 100%"></div>
                             </div>
-                            <span id="enemyHpText" class="text-zinc-200 font-mono w-11 text-right">28/28</span>
+                            <span id="enemyHpText" class="text-zinc-200 font-mono w-12 text-right">35/35</span>
                         </div>
                         <!-- 厉鬼复苏度 -->
                         <div class="flex items-center gap-1.5 text-[10px] sm:text-xs">
@@ -173,26 +228,20 @@
                             <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden border border-red-900/50">
                                 <div id="enemyRevivalBar" class="revival-bar-fill h-full bg-red-600" style="width: 15%"></div>
                             </div>
-                            <span id="enemyRevivalText" class="text-red-300 font-mono w-11 text-right">15%</span>
+                            <span id="enemyRevivalText" class="text-red-300 font-mono w-12 text-right">15%</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 敌方手牌指示 & 灵异点数 -->
-            <div class="flex items-center gap-2 sm:gap-4">
-                <div class="flex flex-col items-end">
-                    <div class="flex items-center gap-1">
-                        <span class="text-[10px] sm:text-xs text-zinc-400 hidden sm:inline">敌方手牌</span>
-                        <div id="enemyHandVisual" class="flex -space-x-2">
-                            <!-- 动态生成小卡背 -->
-                        </div>
-                    </div>
-                    <div class="mt-1 flex items-center gap-1.5 bg-zinc-900/90 border border-amber-700/40 px-2 py-0.5 rounded">
-                        <span class="text-[10px] sm:text-xs text-amber-500/90">灵异值:</span>
-                        <span id="enemyEnergyText" class="text-xs sm:text-sm font-bold text-amber-300 font-mono">3/3</span>
-                    </div>
+            <!-- 敌方意图预告 & 功能按钮 -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- 敌方下回合规律意图预告（增加策略博弈深度） -->
+                <div id="enemyIntentBox" class="hidden md:flex flex-col items-end bg-red-950/40 border border-red-800/60 px-2.5 py-1 rounded-lg">
+                    <span class="text-[10px] text-red-400 font-bold">⚠️ 侦测到杀人规律</span>
+                    <span id="enemyIntentText" class="text-xs text-zinc-200 font-medium">敲门诅咒 · 预计10点穿透伤</span>
                 </div>
+
                 <!-- 关卡选择按钮 -->
                 <button onclick="toggleStageModal(true)" class="p-2 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-red-500/60 text-zinc-300 text-xs transition">
                     <span>事件档案</span>
@@ -203,52 +252,57 @@
                 </button>
             </div>
         </div>
+        <!-- 移动端敌方意图条 -->
+        <div class="md:hidden max-w-5xl mx-auto w-full flex justify-between items-center bg-red-950/30 border border-red-900/40 px-2.5 py-1 rounded text-[11px]">
+            <span class="text-red-400 font-bold">⚠️ 规律预警：</span>
+            <span id="enemyIntentTextMobile" class="text-zinc-200 truncate">敲门诅咒 · 预计10点穿透伤</span>
+        </div>
     </header>
 
     <!-- 中央战场区：灵异碰撞与战斗日志 -->
     <main class="flex-1 flex flex-col items-center justify-center px-3 relative z-20 max-w-5xl mx-auto w-full my-1">
         
-        <!-- 回合指示器与阶段提示 -->
+        <!-- 回合指示器与鬼域对抗层级 -->
         <div class="w-full flex items-center justify-between mb-1 sm:mb-2 px-1">
             <div class="flex items-center gap-2">
                 <span id="turnBadge" class="px-2.5 py-0.5 rounded text-xs font-bold bg-red-950/80 text-red-200 border border-red-800/70 shadow">
                     第 1 夜 · 你的回合
                 </span>
-                <span id="activeDomainIndicator" class="text-xs text-amber-400/90 hidden sm:inline">
-                    当前无鬼域展开
+                <span id="domainClashBadge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-zinc-900 border border-amber-700/60 text-amber-300">
+                    鬼域压制：我方 0层 vs 敌方 1层 (伤害-20%)
                 </span>
             </div>
-            <div class="text-[11px] text-zinc-400">
-                警告：复苏度达 <span class="text-red-500 font-bold">100%</span> 将直接厉鬼复苏暴毙
+            <div class="text-[11px] text-zinc-400 hidden sm:block">
+                提示：高鬼域层数可压制低层鬼域，使用【重启】可逆转生死
             </div>
         </div>
 
         <!-- 战场对决展示台 (双方出牌展示与灵异实体槽) -->
-        <div class="w-full flex-1 max-h-[260px] sm:max-h-[300px] rounded-xl border border-zinc-800/90 bg-zinc-950/60 backdrop-blur-sm relative flex flex-col justify-between p-2.5 sm:p-4 shadow-2xl">
+        <div id="battleArena" class="w-full flex-1 max-h-[260px] sm:max-h-[300px] rounded-xl border border-zinc-800/90 bg-zinc-950/70 backdrop-blur-sm relative flex flex-col justify-between p-2.5 sm:p-4 shadow-2xl overflow-hidden">
             
             <!-- 敌方场上灵异/状态 -->
-            <div class="flex items-center justify-center gap-2 sm:gap-4 min-h-[36px]">
+            <div class="flex items-center justify-center gap-2 sm:gap-4 min-h-[34px] z-10">
                 <div id="enemyFieldArea" class="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
                     <div class="text-xs text-zinc-600 italic">敌方尚未释放深层灵异...</div>
                 </div>
             </div>
 
             <!-- 中央碰撞展示区 -->
-            <div id="clashStage" class="my-auto flex items-center justify-center gap-4 sm:gap-8 py-1 relative">
+            <div id="clashStage" class="my-auto flex items-center justify-center gap-4 sm:gap-8 py-1 relative z-10">
                 <div id="lastPlayedCardDisplay" class="flex items-center justify-center min-h-[70px] text-xs sm:text-sm text-zinc-400 text-center px-4">
                     “人死如灯灭，唯鬼永存。谨慎使用灵异力量……”
                 </div>
             </div>
 
             <!-- 我方场上灵异/状态 -->
-            <div class="flex items-center justify-center gap-2 sm:gap-4 min-h-[36px]">
+            <div class="flex items-center justify-center gap-2 sm:gap-4 min-h-[34px] z-10">
                 <div id="playerFieldArea" class="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
                     <div class="text-xs text-zinc-600 italic">我方驾驭厉鬼处于沉寂状态</div>
                 </div>
             </div>
 
             <!-- 战斗事件简报条 -->
-            <div id="battleLogBar" class="w-full bg-black/70 border-t border-zinc-800/80 px-3 py-1 rounded-b-lg flex items-center justify-between text-[11px] sm:text-xs">
+            <div id="battleLogBar" class="w-full bg-black/80 border-t border-zinc-800/80 px-3 py-1 rounded-b-lg flex items-center justify-between text-[11px] sm:text-xs z-10">
                 <span id="latestLogText" class="text-amber-200/90 truncate">黑夜降临，大昌市灵异事件开始蔓延...</span>
                 <button onclick="toggleLogDrawer()" class="text-zinc-400 hover:text-zinc-200 ml-2 shrink-0 underline">记录</button>
             </div>
@@ -265,13 +319,14 @@
             </div>
 
             <!-- 我方控制台：状态条与行动按钮 -->
-            <div class="flex items-center justify-between bg-zinc-900/90 border border-zinc-800 rounded-xl px-3 py-2 sm:px-4 shadow-lg">
+            <div class="flex items-center justify-between bg-zinc-900/95 border border-zinc-800 rounded-xl px-3 py-2 sm:px-4 shadow-lg">
                 <!-- 我方数值 -->
                 <div class="flex items-center gap-2.5 sm:gap-4">
-                    <div id="playerAvatar" class="relative w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-amber-700/70 bg-zinc-950 flex items-center justify-center shrink-0">
-                        <svg class="w-6 h-6 sm:w-7 sm:h-7 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <div id="playerAvatar" class="relative w-11 h-11 sm:w-13 sm:h-13 rounded-lg border-2 border-amber-700/80 bg-zinc-950 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(217,119,6,0.3)]">
+                        <svg class="w-7 h-7 sm:w-8 sm:h-8 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                            <circle cx="12" cy="12" r="3" fill="#dc2626" stroke="none"/>
+                            <circle cx="12" cy="12" r="3.5" fill="#dc2626" stroke="none"/>
+                            <circle cx="12" cy="12" r="1.2" fill="#000" stroke="none"/>
                         </svg>
                         <span class="absolute bottom-0 right-0 bg-amber-950 text-amber-200 text-[8px] px-1 font-bold">鬼眼杨间</span>
                     </div>
@@ -297,23 +352,23 @@
                 </div>
 
                 <!-- 灵异能量与操作按钮 -->
-                <div class="flex items-center gap-2 sm:gap-3">
+                <div class="flex items-center gap-1.5 sm:gap-3">
                     <!-- 灵异值球 -->
-                    <div class="flex flex-col items-center justify-center bg-black/80 border border-amber-600/50 rounded-lg px-2.5 py-1">
+                    <div class="flex flex-col items-center justify-center bg-black/80 border border-amber-600/50 rounded-lg px-2 py-1 sm:px-2.5">
                         <span class="text-[9px] sm:text-[10px] text-amber-400/80">灵异力量</span>
                         <span id="playerEnergyText" class="text-sm sm:text-base font-black text-amber-300 font-mono">3 / 3</span>
                     </div>
 
-                    <!-- 压制按钮 (消耗灵异值降低复苏度) -->
-                    <button id="suppressBtn" onclick="useSuppressAbility()" title="消耗2点灵异值，压制体内厉鬼，降低20%复苏度"
-                        class="px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 active:scale-95 border border-amber-700/50 text-amber-200 text-xs sm:text-sm font-bold transition flex flex-col items-center leading-tight">
+                    <!-- 压制按钮 -->
+                    <button id="suppressBtn" onclick="useSuppressAbility()" title="消耗2点灵异值，压制体内厉鬼，降低18%复苏度"
+                        class="px-2 py-2 sm:px-3.5 sm:py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 active:scale-95 border border-amber-700/50 text-amber-200 text-xs sm:text-sm font-bold transition flex flex-col items-center leading-tight">
                         <span>压制厉鬼</span>
-                        <span class="text-[9px] text-amber-400/80 font-normal">-20%复苏 (2费)</span>
+                        <span class="text-[9px] text-amber-400/80 font-normal">-18%复苏 (2费)</span>
                     </button>
 
                     <!-- 结束回合按钮 -->
                     <button id="endTurnBtn" onclick="endPlayerTurn()"
-                        class="px-3.5 py-2.5 sm:px-5 sm:py-3 rounded-lg bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 active:scale-95 border border-red-500/50 text-white text-xs sm:text-sm font-bold shadow-lg shadow-red-950/60 transition">
+                        class="px-3 py-2.5 sm:px-5 sm:py-3 rounded-lg bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 active:scale-95 border border-red-500/50 text-white text-xs sm:text-sm font-bold shadow-lg shadow-red-950/60 transition">
                         结束黑夜
                     </button>
                 </div>
@@ -338,7 +393,7 @@
     <div id="stageModal" class="fixed inset-0 bg-black/80 z-40 hidden items-center justify-center p-4 backdrop-blur-xs">
         <div class="bg-zinc-900 border border-red-900/60 rounded-xl w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl">
             <div class="p-4 border-b border-zinc-800 flex justify-between items-center">
-                <h3 class="font-bold text-red-400 text-base">总部绝密灵异档案 · 事件选择</h3>
+                <h3 class="font-bold text-red-400 text-base">总部绝密灵异档案 · 噩梦难度开启</h3>
                 <button onclick="toggleStageModal(false)" class="text-zinc-400 hover:text-white px-2">✕</button>
             </div>
             <div id="stageListContainer" class="p-4 overflow-y-auto space-y-2.5 text-xs sm:text-sm">
@@ -351,21 +406,21 @@
     <div id="rulesModal" class="fixed inset-0 bg-black/80 z-40 hidden items-center justify-center p-4 backdrop-blur-xs">
         <div class="bg-zinc-900 border border-amber-800/60 rounded-xl w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl">
             <div class="p-4 border-b border-zinc-800 flex justify-between items-center">
-                <h3 class="font-bold text-amber-400 text-base">《神秘复苏》驭鬼者生存法则</h3>
+                <h3 class="font-bold text-amber-400 text-base">《神秘复苏》高危生存法则（进阶机制）</h3>
                 <button onclick="toggleRulesModal(false)" class="text-zinc-400 hover:text-white px-2">✕</button>
             </div>
             <div class="p-4 overflow-y-auto space-y-3 text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                <div class="p-2.5 rounded bg-purple-950/30 border border-purple-800/50">
+                    <p class="font-bold text-purple-400 mb-1">进阶一：鬼域层数对抗（核心压制）</p>
+                    <p>所有BOSS天生自带鬼域层级！当你的<span class="text-purple-300 font-bold">鬼域层数低于敌方</span>时，你的灵异袭击伤害会被压制降低（每差1层降低20%伤害）；当你展开更深层鬼域反超敌方时，将触发【鬼域碾压】，伤害额外暴增 30%！</p>
+                </div>
                 <div class="p-2.5 rounded bg-red-950/30 border border-red-900/50">
-                    <p class="font-bold text-red-400 mb-1">铁律一：厉鬼复苏与反噬</p>
-                    <p>每次动用灵异卡牌都会加剧体内厉鬼的<span class="text-red-400 font-bold">复苏度</span>。当复苏度达到 <span class="text-red-400 font-bold">100%</span> 时，你将沦为鬼奴直接判负！同理，你也可以利用【棺材钉】、【鬼剪刀】等卡牌逼迫敌方复苏度爆表将其关押。</p>
+                    <p class="font-bold text-red-400 mb-1">进阶二：手牌诅咒与灵异污染</p>
+                    <p>高危厉鬼会向你的手牌塞入【鬼奴契约】或【灰白诅咒】废牌！留在手中每回合都会自动增加你的复苏度，必须消耗灵异力量将其焚烧净化。</p>
                 </div>
                 <div class="p-2.5 rounded bg-amber-950/30 border border-amber-900/50">
-                    <p class="font-bold text-amber-400 mb-1">铁律二：灵异平衡与压制</p>
-                    <p>使用【压制厉鬼】按钮或【黄金容器】、【鬼烛】、【八音盒】等卡牌可降低复苏度；驾驭【无头鬼影】可形成灵异死机平衡。</p>
-                </div>
-                <div class="p-2.5 rounded bg-zinc-800/70 border border-zinc-700">
-                    <p class="font-bold text-zinc-100 mb-1">铁律三：鬼域与杀人规律</p>
-                    <p>开启【三层鬼域】可获得护盾并强化下一次袭击伤害；高危BOSS拥有专属规律（如高大男尸的柴刀劈砍、鬼差的落单压制、鬼画的灰白同化）。</p>
+                    <p class="font-bold text-amber-400 mb-1">进阶三：重启时间线与死机平衡</p>
+                    <p>七层鬼域【重启】可将自身意识与复苏度回溯至安全状态；同时注意观察顶部【规律预警】，在敌方发动必死一击前叠好护盾或鬼烛！</p>
                 </div>
             </div>
             <div class="p-3 border-t border-zinc-800 flex justify-end">
@@ -394,7 +449,130 @@
 
     <script>
         /**
-         * 音效合成器 (基于 Web Audio API，无需外部音频文件)
+         * 灵异粒子与光束 Canvas 特效引擎（提升画面表现力）
+         */
+        const FXEngine = {
+            canvas: null,
+            ctx: null,
+            particles: [],
+            beams: [],
+            init() {
+                this.canvas = document.getElementById('fxCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                // 初始化背景漂浮灵异灰烬与血雾粒子
+                for (let i = 0; i < 38; i++) {
+                    this.particles.push(this.createAshParticle());
+                }
+                this.loop();
+            },
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            },
+            createAshParticle() {
+                const isRed = Math.random() < 0.35;
+                return {
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    vx: (Math.random() - 0.5) * 0.6,
+                    vy: -0.3 - Math.random() * 0.8,
+                    size: 1 + Math.random() * 2.5,
+                    alpha: 0.15 + Math.random() * 0.45,
+                    color: isRed ? '220, 38, 38' : '161, 161, 170'
+                };
+            },
+            // 触发灵异光束/劈砍特效
+            spawnBeam(fromId, toId, color = '#ef4444', isSlash = false) {
+                const fromEl = document.getElementById(fromId);
+                const toEl = document.getElementById(toId);
+                if (!fromEl || !toEl) return;
+                const r1 = fromEl.getBoundingClientRect();
+                const r2 = toEl.getBoundingClientRect();
+                this.beams.push({
+                    x1: r1.left + r1.width / 2,
+                    y1: r1.top + r1.height / 2,
+                    x2: r2.left + r2.width / 2,
+                    y2: r2.top + r2.height / 2,
+                    color,
+                    isSlash,
+                    life: 1.0
+                });
+                // 爆发火花粒子
+                for (let i = 0; i < 18; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 2 + Math.random() * 5;
+                    this.particles.push({
+                        x: r2.left + r2.width / 2,
+                        y: r2.top + r2.height / 2,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        size: 2 + Math.random() * 3,
+                        alpha: 1,
+                        decay: 0.03,
+                        color: color === '#ef4444' ? '239, 68, 68' : '245, 158, 11'
+                    });
+                }
+            },
+            loop() {
+                const ctx = this.ctx;
+                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // 更新绘制粒子
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.decay) {
+                        p.alpha -= p.decay;
+                        if (p.alpha <= 0) {
+                            this.particles.splice(i, 1);
+                            continue;
+                        }
+                    } else {
+                        if (p.y < -10) p.y = this.canvas.height + 10;
+                        if (p.x < -10) p.x = this.canvas.width + 10;
+                        if (p.x > this.canvas.width + 10) p.x = -10;
+                    }
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${p.color}, ${p.alpha})`;
+                    ctx.fill();
+                }
+
+                // 更新绘制灵异射线/柴刀斩击
+                for (let i = this.beams.length - 1; i >= 0; i--) {
+                    const b = this.beams[i];
+                    b.life -= 0.045;
+                    if (b.life <= 0) {
+                        this.beams.splice(i, 1);
+                        continue;
+                    }
+                    ctx.save();
+                    ctx.globalAlpha = b.life;
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = b.color;
+                    ctx.strokeStyle = b.color;
+                    ctx.lineWidth = b.isSlash ? 6 * b.life : 10 * b.life;
+                    ctx.beginPath();
+                    if (b.isSlash) {
+                        ctx.moveTo(b.x2 - 55, b.y2 - 55);
+                        ctx.lineTo(b.x2 + 55, b.y2 + 55);
+                    } else {
+                        ctx.moveTo(b.x1, b.y1);
+                        ctx.lineTo(b.x2, b.y2);
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                requestAnimationFrame(() => this.loop());
+            }
+        };
+
+        /**
+         * 音效合成器 (基于 Web Audio API)
          */
         const SoundFX = {
             ctx: null,
@@ -410,7 +588,7 @@
                     const gain = this.ctx.createGain();
                     osc.type = type;
                     osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(freq * 0.4, this.ctx.currentTime + duration);
+                    osc.frequency.exponentialRampToValueAtTime(freq * 0.35, this.ctx.currentTime + duration);
                     gain.gain.setValueAtTime(vol, this.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
                     osc.connect(gain);
@@ -420,13 +598,13 @@
                 } catch (e) {}
             },
             playCard() { this.playTone(220, 'triangle', 0.25, 0.2); },
-            playAttack() { this.playTone(110, 'sawtooth', 0.45, 0.25); },
-            playSuppress() { this.playTone(440, 'sine', 0.35, 0.15); },
-            playHorror() { this.playTone(75, 'sawtooth', 0.7, 0.3); }
+            playAttack() { this.playTone(105, 'sawtooth', 0.5, 0.28); },
+            playSuppress() { this.playTone(460, 'sine', 0.35, 0.15); },
+            playHorror() { this.playTone(70, 'sawtooth', 0.8, 0.32); }
         };
 
         /**
-         * 《神秘复苏》完整灵异卡牌数据库
+         * 《神秘复苏》高危进阶卡牌数据库
          */
         const CARD_POOL = [
             {
@@ -434,24 +612,38 @@
                 name: '鬼眼·红光袭击',
                 type: 'attack',
                 cost: 1,
-                revival: 12,
-                damage: 6,
+                revival: 14,
+                damage: 7,
                 tag: '灵异袭击',
                 color: 'text-red-400',
-                desc: '睁开第三只鬼眼释放猩红鬼火。造成 6 点意识伤害，自身复苏 +12%。',
+                desc: '睁开第三只鬼眼释放猩红鬼火。造成 7 点灵异伤害（受鬼域层数修正），自身复苏 +14%。',
                 icon: '👁️'
             },
             {
-                id: 'ghost_domain_1',
-                name: '三层鬼域·隔绝',
+                id: 'ghost_domain_3',
+                name: '五层鬼域·现实扭曲',
                 type: 'domain',
                 cost: 2,
-                revival: 15,
-                shield: 8,
-                tag: '鬼域展开',
+                revival: 18,
+                domainLevel: 2,
+                shield: 9,
+                tag: '鬼域叠加',
                 color: 'text-rose-400',
-                desc: '展开三层鬼域扭曲现实。获得 8 点意识护盾，并使下一次袭击伤害 +3，复苏 +15%。',
+                desc: '永久提升我方鬼域 +2 层！获得 9 点护盾，下一次袭击额外 +4 伤，复苏 +18%。',
                 icon: '🩸'
+            },
+            {
+                id: 'ghost_domain_restart',
+                name: '七层鬼域·时间重启',
+                type: 'domain',
+                cost: 3,
+                revival: -30,
+                domainLevel: 3,
+                heal: 10,
+                tag: '终极奥义',
+                color: 'text-amber-300',
+                desc: '逆转自身时间线！鬼域永久 +3 层，恢复 10 点意识并清除 30% 复苏度！',
+                icon: '⏳'
             },
             {
                 id: 'gold_container',
@@ -459,23 +651,23 @@
                 type: 'suppress',
                 cost: 1,
                 revival: -18,
-                heal: 3,
+                heal: 4,
                 tag: '灵异物品',
                 color: 'text-amber-400',
-                desc: '黄金能彻底隔绝灵异。恢复 3 点意识，并大幅降低 18% 厉鬼复苏度。',
+                desc: '黄金彻底隔绝灵异。恢复 4 点意识，降低 18% 厉鬼复苏度，并清除1张诅咒手牌。',
                 icon: '📦'
             },
             {
                 id: 'ghost_shadow',
-                name: '无头鬼影·拼接',
+                name: '无头鬼影·死机平衡',
                 type: 'entity',
                 cost: 2,
-                revival: 8,
-                damage: 5,
-                heal: 4,
+                revival: 6,
+                damage: 6,
+                heal: 5,
                 tag: '第二只鬼',
                 color: 'text-purple-400',
-                desc: '驾驭无头鬼影实现灵异死机平衡。造成 5 点伤害，恢复 4 点意识，复苏仅 +8%。',
+                desc: '驾驭无头鬼影形成死机平衡。造成 6 点伤害，恢复 5 点意识，复苏仅 +6%。',
                 icon: '👤'
             },
             {
@@ -483,11 +675,11 @@
                 name: '红色鬼烛',
                 type: 'suppress',
                 cost: 2,
-                revival: -10,
-                shield: 12,
+                revival: -12,
+                shield: 15,
                 tag: '保命底牌',
                 color: 'text-orange-400',
-                desc: '点燃红色鬼烛吸引并抵御厉鬼杀人规律。获得 12 点护盾，复苏 -10%。',
+                desc: '点燃红色鬼烛抵御必死规律。获得 15 点高额护盾，复苏 -12%。',
                 icon: '🕯️'
             },
             {
@@ -495,12 +687,12 @@
                 name: '锈迹棺材钉',
                 type: 'attack',
                 cost: 3,
-                revival: 22,
-                damage: 13,
-                enemyRevival: 15,
+                revival: 24,
+                damage: 15,
+                enemyRevival: 16,
                 tag: '无解压制',
                 color: 'text-red-500',
-                desc: '钉住一切厉鬼的恐怖灵异！造成 13 点巨额伤害，并迫使敌方复苏 +15%（自身+22%）。',
+                desc: '无视鬼域压制！造成 15 点巨额伤害，并迫使敌方复苏 +16%（自身+24%）。',
                 icon: '🗡️'
             },
             {
@@ -509,11 +701,11 @@
                 type: 'attack',
                 cost: 2,
                 revival: 18,
-                damage: 9,
-                enemyRevival: 10,
+                damage: 10,
+                enemyRevival: 12,
                 tag: '规律诅咒',
                 color: 'text-zinc-300',
-                desc: '响起三声绝望的敲门声。无视护盾造成 9 点伤害，敌方复苏 +10%，自身复苏 +18%。',
+                desc: '三声绝望敲门声。无视护盾造成 10 点伤害，敌方复苏 +12%，自身复苏 +18%。',
                 icon: '🚪'
             },
             {
@@ -521,37 +713,24 @@
                 name: '人皮纸·诡异方案',
                 type: 'entity',
                 cost: 0,
-                revival: 20,
+                revival: 22,
                 draw: 2,
                 energyGain: 2,
                 tag: '禁忌之物',
                 color: 'text-yellow-300',
-                desc: '“我叫杨间，当你看到这句话的时候我已经死了……”抽 2 张牌并获 2 点灵异值，复苏剧增 +20%！',
+                desc: '“我叫杨间，当你看到这句话的时候我已经死了……”抽 2 张牌并获 2 点灵异值，复苏剧增 +22%！',
                 icon: '📜'
             },
             {
-                id: 'ghost_rope',
-                name: '草编鬼绳',
-                type: 'attack',
-                cost: 1,
-                revival: 10,
-                damage: 4,
-                enemyRevival: 12,
-                tag: '灵异束缚',
-                color: 'text-lime-400',
-                desc: '从天垂落的草绳勒住目标。造成 4 点伤害，并使敌方厉鬼躁动，敌方复苏 +12%。',
-                icon: '🪢'
-            },
-            {
                 id: 'rusty_cleaver',
-                name: '诡异柴刀·肢解',
+                name: '诡异柴刀·媒介劈砍',
                 type: 'attack',
                 cost: 3,
-                revival: 25,
-                damage: 16,
+                revival: 26,
+                damage: 19,
                 tag: '恐怖媒介',
                 color: 'text-red-500',
-                desc: '踩中脚印触发媒介劈砍！造成 16 点毁灭性伤害，但自身承受同等诅咒，复苏暴涨 +25%。',
+                desc: '触发媒介肢解！造成 19 点毁灭性伤害，但承受反噬复苏暴涨 +26%。',
                 icon: '🪓'
             },
             {
@@ -559,11 +738,11 @@
                 name: '鬼剪刀·剪断诅咒',
                 type: 'suppress',
                 cost: 2,
-                revival: -22,
-                enemyRevival: 8,
+                revival: -20,
+                enemyRevival: 10,
                 tag: '灵异之物',
                 color: 'text-amber-300',
-                desc: '剪断缠绕在身上的灵异诅咒。自身复苏 -22%，同时将恶意转移使敌方复苏 +8%。',
+                desc: '剪断身上诅咒。清除手中所有诅咒牌，自身复苏 -20%，使敌方复苏 +10%。',
                 icon: '✂️'
             },
             {
@@ -572,24 +751,12 @@
                 type: 'domain',
                 cost: 1,
                 revival: -15,
-                shield: 10,
-                heal: 5,
+                shield: 11,
+                heal: 4,
                 tag: '诅咒免疫',
                 color: 'text-indigo-400',
-                desc: '打开八音盒听取诡异旋律，短时间内免疫厉鬼复苏。获 10 点护盾，恢复 5 点意识，复苏 -15%。',
+                desc: '听取八音盒旋律免疫复苏。获 11 点护盾，恢复 4 点意识，复苏 -15%。',
                 icon: '🎶'
-            },
-            {
-                id: 'ghost_cabinet',
-                name: '鬼橱·等价交换',
-                type: 'entity',
-                cost: 1,
-                revival: 14,
-                draw: 3,
-                tag: '禁忌交易',
-                color: 'text-yellow-500',
-                desc: '向木橱递出交易请求。抽取 3 张灵异卡牌，自身复苏 +14%。',
-                icon: '🗄️'
             },
             {
                 id: 'ghost_lake',
@@ -597,58 +764,83 @@
                 type: 'domain',
                 cost: 2,
                 revival: 16,
-                damage: 7,
-                shield: 6,
+                domainLevel: 1,
+                damage: 8,
+                shield: 7,
                 tag: 'S级水域',
                 color: 'text-cyan-400',
-                desc: '阴冷刺骨的湖水淹没战场。造成 7 点伤害，获得 6 点护盾，自身复苏 +16%。',
+                desc: '鬼域 +1 层，阴冷湖水淹没战场造成 8 点伤害，获 7 点护盾，自身复苏 +16%。',
                 icon: '🌊'
             }
         ];
 
+        // 敌方塞入玩家手牌的污染诅咒牌
+        const CURSE_CARD_TEMPLATE = {
+            id: 'curse_slave',
+            name: '鬼奴印记·诅咒',
+            type: 'curse',
+            cost: 1,
+            revival: -5,
+            tag: '灵异污染',
+            color: 'text-red-500',
+            isCurse: true,
+            desc: '【负面污染】留在手中每回合使你复苏 +10%！消耗 1 点灵异力量可将其焚烧净化。',
+            icon: '💀'
+        };
+
         /**
-         * 五大经典灵异事件关卡
+         * 五大高危灵异事件关卡（带初始鬼域层数、专属SVG造型与规律）
          */
         const STAGES = [
             {
                 name: '敲门鬼·罗文松',
                 rank: 'A级灵异',
-                maxHp: 28,
+                maxHp: 35,
                 revival: 15,
-                aiStyle: 'aggressive',
-                intro: '咚、咚、咚……老旧木门的敲击声在黑夜中回荡，死亡规律已锁定你。'
+                domainLevel: 1,
+                aiStyle: 'knocker',
+                intro: '咚、咚、咚……老旧木门的敲击声在黑夜中回荡，死亡规律已锁定你。',
+                svg: `<svg class="w-9 h-9 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 3h14v18H5z"/><circle cx="16" cy="12" r="1" fill="currentColor"/><path d="M9 8h4M9 12h3" stroke-dasharray="2 2"/></svg>`
             },
             {
                 name: '朋友圈·方世明',
                 rank: '顶尖驭鬼者',
-                maxHp: 35,
+                maxHp: 44,
                 revival: 10,
-                aiStyle: 'balanced',
-                intro: '“杨间，你不过是个刚驾驭鬼眼的新人，也敢与朋友圈为敌？”'
+                domainLevel: 2,
+                aiStyle: 'fang',
+                intro: '“杨间，你不过是个刚驾驭鬼眼的新人，也敢与朋友圈为敌？”',
+                svg: `<svg class="w-9 h-9 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><circle cx="18" cy="6" r="2" fill="#dc2626"/></svg>`
             },
             {
                 name: '凯撒大酒店·高大男尸',
                 rank: 'A级恐怖源头',
-                maxHp: 42,
+                maxHp: 54,
                 revival: 5,
+                domainLevel: 2,
                 aiStyle: 'cleaver',
-                intro: '腐烂的高大无头男尸拖着生锈柴刀走来，踩中它的脚印便会触发必死肢解！'
+                intro: '腐烂的高大无头男尸拖着生锈柴刀走来，踩中它的脚印便会触发必死肢解！',
+                svg: `<svg class="w-9 h-9 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 21v-8a4 4 0 0 1 8 0v8"/><path d="M17 4l4 4-7 7-4-4 7-7z" fill="rgba(220,38,38,0.3)"/></svg>`
             },
             {
                 name: '鬼差·无解压制',
                 rank: 'S级灵异',
-                maxHp: 50,
-                revival: 5,
+                maxHp: 65,
+                revival: 0,
+                domainLevel: 3,
                 aiStyle: 'boss',
-                intro: '身穿寿衣的漆黑身影自黑暗走出，落单必死，压制一切灵异！'
+                intro: '身穿寿衣的漆黑身影自黑暗走出，落单必死，压制一切灵异！',
+                svg: `<svg class="w-9 h-9 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L4 7v11l8 4 8-4V7l-8-5z"/><circle cx="9.5" cy="10" r="1.2" fill="#ef4444"/><circle cx="14.5" cy="10" r="1.2" fill="#ef4444"/></svg>`
             },
             {
                 name: '鬼画·绝望灰界',
                 rank: 'S级灭世灵异',
-                maxHp: 60,
+                maxHp: 78,
                 revival: 0,
+                domainLevel: 4,
                 aiStyle: 'painting',
-                intro: '油画中的女子缓缓转过头来，整座城市的色彩正在迅速褪去，化作死寂灰白……'
+                intro: '油画中的女子缓缓转过头来，整座城市的色彩正在迅速褪去，化作死寂灰白……',
+                svg: `<svg class="w-9 h-9 text-zinc-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 19c1.5-3 8.5-3 10 0"/></svg>`
             }
         ];
 
@@ -661,6 +853,7 @@
             isPlayerTurn: true,
             gameOver: false,
             logs: [],
+            nextEnemyIntent: null,
             player: {
                 hp: 30,
                 maxHp: 30,
@@ -668,6 +861,7 @@
                 revival: 0,
                 energy: 3,
                 maxEnergy: 3,
+                domainLevel: 0,
                 domainBonus: 0,
                 hand: [],
                 deck: []
@@ -675,13 +869,12 @@
             enemy: {
                 name: '',
                 rank: '',
-                hp: 30,
-                maxHp: 30,
+                hp: 35,
+                maxHp: 35,
                 shield: 0,
-                revival: 10,
-                energy: 3,
-                maxEnergy: 3,
-                handCount: 4
+                revival: 15,
+                domainLevel: 1,
+                phase2Triggered: false
             }
         };
 
@@ -697,6 +890,7 @@
                 isPlayerTurn: true,
                 gameOver: false,
                 logs: [],
+                nextEnemyIntent: null,
                 player: {
                     hp: 30,
                     maxHp: 30,
@@ -704,6 +898,7 @@
                     revival: 0,
                     energy: 3,
                     maxEnergy: 3,
+                    domainLevel: 0,
                     domainBonus: 0,
                     hand: [],
                     deck: buildDeck()
@@ -715,19 +910,26 @@
                     maxHp: stage.maxHp,
                     shield: 0,
                     revival: stage.revival,
-                    energy: 3,
-                    maxEnergy: 3,
-                    handCount: 4
+                    domainLevel: stage.domainLevel,
+                    phase2Triggered: false
                 }
             };
 
+            document.getElementById('enemySvgContainer').innerHTML = stage.svg;
             document.getElementById('gameOverModal').classList.add('hidden');
             document.getElementById('gameOverModal').classList.remove('flex');
             document.getElementById('domainOverlay').classList.remove('ghost-domain-active');
             document.getElementById('domainOverlay').style.opacity = '0';
+            document.getElementById('gameBody').classList.remove('grayscale-curse');
+
+            // 鬼画关开局附带灰白视觉压迫
+            if (stage.aiStyle === 'painting') {
+                document.getElementById('gameBody').classList.add('grayscale-curse');
+            }
 
             drawCards(4);
-            addLog(`【第${stageIdx + 1}夜】遭遇 ${stage.name} (${stage.rank})！`);
+            planNextEnemyIntent();
+            addLog(`【噩梦第${stageIdx + 1}夜】遭遇 ${stage.name} (${stage.rank} · 鬼域${stage.domainLevel}层)！`);
             setStageDisplay(stage.intro);
             updateFieldArea();
             updateUI();
@@ -764,6 +966,35 @@
         }
 
         /**
+         * 向玩家手牌塞入灵异诅咒废牌
+         */
+        function injectCurseCard() {
+            if (state.player.hand.length < 6) {
+                state.player.hand.push({
+                    ...CURSE_CARD_TEMPLATE,
+                    uid: 'curse_' + Math.random().toString(36).substr(2, 9)
+                });
+                showFloatingText('playerHandContainer', '手牌被灵异污染！', '#ef4444');
+            } else {
+                state.player.revival += 10;
+                showFloatingText('playerAvatar', '灵异溢散 复苏+10%', '#ef4444');
+            }
+        }
+
+        /**
+         * 计算鬼域层数差带来的伤害倍率
+         */
+        function getDomainMultiplier() {
+            const diff = state.player.domainLevel - state.enemy.domainLevel;
+            if (diff < 0) {
+                return Math.max(0.4, 1 + diff * 0.2); // 每低1层减少20%伤害，最低40%
+            } else if (diff > 0) {
+                return 1.3; // 鬼域反超碾压，增伤30%
+            }
+            return 1.0;
+        }
+
+        /**
          * 玩家打出卡牌
          */
         function playCard(uid) {
@@ -782,6 +1013,16 @@
             state.player.energy -= card.cost;
             state.player.hand.splice(cardIdx, 1);
 
+            // 如果是焚烧净化诅咒牌
+            if (card.isCurse) {
+                state.player.revival = Math.max(0, state.player.revival - 5);
+                SoundFX.playSuppress();
+                showFloatingText('playerAvatar', '净化诅咒 -5%复苏', '#34d399');
+                addLog('你消耗灵异力量焚烧了一张【鬼奴印记】，复苏度 -5%。');
+                updateUI();
+                return;
+            }
+
             SoundFX.playCard();
 
             // 1. 处理复苏度变化
@@ -792,16 +1033,30 @@
                 showFloatingText('playerAvatar', `复苏 ${sign}`, color);
             }
 
-            // 2. 处理鬼域效果
+            // 2. 处理鬼域层数与展开效果
             if (card.type === 'domain') {
-                state.player.domainBonus = 3;
+                if (card.domainLevel) {
+                    state.player.domainLevel += card.domainLevel;
+                }
+                if (card.id === 'ghost_domain_3') {
+                    state.player.domainBonus = 4;
+                }
                 const overlay = document.getElementById('domainOverlay');
                 overlay.style.opacity = '1';
                 overlay.classList.add('ghost-domain-active');
-                document.getElementById('activeDomainIndicator').textContent = '★ 鬼域展开中（下击+3）';
+                FXEngine.spawnBeam('playerAvatar', 'battleArena', '#dc2626', false);
             }
 
-            // 3. 处理护盾与意识恢复
+            // 3. 净化诅咒手牌（黄金容器 / 鬼剪刀）
+            if (card.id === 'gold_container') {
+                const cIdx = state.player.hand.findIndex(c => c.isCurse);
+                if (cIdx !== -1) state.player.hand.splice(cIdx, 1);
+            }
+            if (card.id === 'ghost_scissors') {
+                state.player.hand = state.player.hand.filter(c => !c.isCurse);
+            }
+
+            // 4. 处理护盾与意识恢复
             if (card.shield) {
                 state.player.shield += card.shield;
                 showFloatingText('playerAvatar', `护盾 +${card.shield}`, '#60a5fa');
@@ -811,21 +1066,25 @@
                 showFloatingText('playerAvatar', `意识 +${card.heal}`, '#34d399');
             }
 
-            // 4. 处理抽牌与回费
+            // 5. 处理抽牌与回费
             if (card.draw) drawCards(card.draw);
             if (card.energyGain) state.player.energy += card.energyGain;
 
-            // 5. 处理对敌方伤害
+            // 6. 处理对敌方伤害（含鬼域层数修正）
             let logMsg = `你动用了【${card.name}】`;
             if (card.damage) {
                 SoundFX.playAttack();
-                let totalDmg = card.damage + state.player.domainBonus;
+                FXEngine.spawnBeam('playerAvatar', 'enemyAvatar', '#ef4444', card.id === 'rusty_cleaver');
+
+                let rawDmg = card.damage + state.player.domainBonus;
                 if (state.player.domainBonus > 0) {
                     state.player.domainBonus = 0;
-                    document.getElementById('activeDomainIndicator').textContent = '鬼域加持已释放';
                 }
 
-                // 鬼敲门无视护盾，其余先扣护盾
+                // 棺材钉无视鬼域层数压制
+                const mult = card.id === 'coffin_nail' ? 1.0 : getDomainMultiplier();
+                let totalDmg = Math.max(1, Math.round(rawDmg * mult));
+
                 if (card.id === 'knock_door_ghost') {
                     state.enemy.hp = Math.max(0, state.enemy.hp - totalDmg);
                     logMsg += `，无视防护造成 ${totalDmg} 点规律伤害`;
@@ -841,24 +1100,32 @@
                 showFloatingText('enemyAvatar', `-${totalDmg}`, '#ef4444');
             }
 
-            // 6. 处理敌方复苏度上升
+            // 7. 处理敌方复苏度上升
             if (card.enemyRevival) {
                 state.enemy.revival = Math.min(100, state.enemy.revival + card.enemyRevival);
                 logMsg += `，迫使敌方复苏 +${card.enemyRevival}%`;
             }
 
-            // 更新中央展示区与场上实体状态
+            // 检查 BOSS 半血暴走二阶段
+            if (!state.enemy.phase2Triggered && state.enemy.hp > 0 && state.enemy.hp <= state.enemy.maxHp * 0.5) {
+                state.enemy.phase2Triggered = true;
+                state.enemy.domainLevel += 1;
+                state.enemy.shield += 10;
+                SoundFX.playHorror();
+                showFloatingText('enemyAvatar', '深层复苏 · 鬼域+1层！', '#a855f7');
+                addLog(`⚠️ 警告！【${state.enemy.name}】进入深层复苏状态，鬼域扩张至 ${state.enemy.domainLevel} 层并获得 10 点护盾！`);
+            }
+
             renderPlayedCardPreview(card, '我方动用');
             updateFieldArea();
             addLog(logMsg + '。');
             updateUI();
 
-            // 检查胜负或自身复苏暴毙
             checkWinCondition();
         }
 
         /**
-         * 玩家主动使用“压制厉鬼”技能（2费降低20%复苏度）
+         * 玩家主动使用“压制厉鬼”技能（2费降低18%复苏度）
          */
         function useSuppressAbility() {
             if (!state.isPlayerTurn || state.gameOver) return;
@@ -872,7 +1139,7 @@
             }
 
             state.player.energy -= 2;
-            const reduced = Math.min(state.player.revival, 20);
+            const reduced = Math.min(state.player.revival, 18);
             state.player.revival -= reduced;
             SoundFX.playSuppress();
             showFloatingText('playerAvatar', `压制 -${reduced}%`, '#34d399');
@@ -882,113 +1149,194 @@
         }
 
         /**
-         * 结束玩家回合，进入敌方灵异回合
+         * 预先规划敌方下回合规律意图（增加策略深度）
+         */
+        function planNextEnemyIntent() {
+            const stage = STAGES[currentStageIndex];
+            const phaseBonus = state.enemy.phase2Triggered ? 3 : 0;
+
+            if (state.enemy.revival >= 75) {
+                state.nextEnemyIntent = {
+                    type: 'suppress',
+                    label: '压制自身复苏 (-22%复苏)',
+                    icon: '🕯️'
+                };
+                return;
+            }
+
+            const roll = Math.random();
+            if (stage.aiStyle === 'knocker') {
+                if (roll < 0.6) {
+                    const dmg = 9 + phaseBonus;
+                    state.nextEnemyIntent = { type: 'pierce', dmg, label: `敲门必死规律 (${dmg}点穿透伤)`, icon: '🚪' };
+                } else {
+                    state.nextEnemyIntent = { type: 'curse', dmg: 6, label: '鬼奴同化 (6伤 + 塞入诅咒牌)', icon: '💀' };
+                }
+            } else if (stage.aiStyle === 'fang') {
+                if (roll < 0.55) {
+                    const dmg = 11 + phaseBonus;
+                    state.nextEnemyIntent = { type: 'slash', dmg, label: `鬼剪刀裁决 (${dmg}点重击)`, icon: '✂️' };
+                } else {
+                    state.nextEnemyIntent = { type: 'shield', shield: 12, label: '鬼域叠加 (护盾+12 & 复苏+10%)', icon: '🩸' };
+                }
+            } else if (stage.aiStyle === 'cleaver') {
+                if (roll < 0.65) {
+                    const dmg = 14 + phaseBonus;
+                    state.nextEnemyIntent = { type: 'slash', dmg, label: `柴刀媒介肢解 (${dmg}点恐怖伤害)`, icon: '🪓' };
+                } else {
+                    state.nextEnemyIntent = { type: 'curse', dmg: 8, label: '尸体腐臭侵蚀 (8伤 + 塞入诅咒牌)', icon: '🧟' };
+                }
+            } else if (stage.aiStyle === 'boss') {
+                if (roll < 0.6) {
+                    const dmg = 11 + phaseBonus;
+                    state.nextEnemyIntent = { type: 'boss_drain', dmg, rev: 14, label: `落单无解压制 (${dmg}穿透伤 + 你复苏+14%)`, icon: '⚰️' };
+                } else {
+                    state.nextEnemyIntent = { type: 'domain_up', shield: 14, label: '重启重启 (护盾+14 & 敌方复苏-15%)', icon: '🌑' };
+                }
+            } else {
+                if (roll < 0.6) {
+                    const dmg = 12 + phaseBonus;
+                    state.nextEnemyIntent = { type: 'painting_curse', dmg, rev: 16, label: `灰白世界同化 (${dmg}伤 + 复苏+16% + 诅咒)`, icon: '🖼️' };
+                } else {
+                    state.nextEnemyIntent = { type: 'slash', dmg: 16 + phaseBonus, label: `画中鬼影袭杀 (${16 + phaseBonus}点毁灭伤)`, icon: '👻' };
+                }
+            }
+        }
+
+        /**
+         * 结束玩家回合，结算手牌诅咒并进入敌方回合
          */
         function endPlayerTurn() {
             if (!state.isPlayerTurn || state.gameOver) return;
+
+            // 结算手中未净化的诅咒废牌惩罚
+            const curses = state.player.hand.filter(c => c.isCurse).length;
+            if (curses > 0) {
+                const penalty = curses * 10;
+                state.player.revival += penalty;
+                showFloatingText('playerAvatar', `手牌诅咒 复苏+${penalty}%`, '#ef4444');
+                addLog(`⚠️ 你手中残留 ${curses} 张【鬼奴印记】，体内厉鬼复苏加剧 +${penalty}%！`);
+                if (checkWinCondition()) return;
+            }
+
             state.isPlayerTurn = false;
             updateUI();
 
             addLog(`--- 第 ${state.turn} 夜 · 敌方灵异回合 ---`);
-            setStageDisplay(`${state.enemy.name} 正在窥探你的杀人规律……`);
+            setStageDisplay(`${state.enemy.name} 触发杀人规律……`);
 
             setTimeout(() => {
                 if (state.gameOver) return;
                 executeEnemyTurn();
-            }, 900);
+            }, 850);
         }
 
         /**
-         * 敌方 AI 行动逻辑
+         * 执行敌方已预告的规律行动
          */
         function executeEnemyTurn() {
-            const stage = STAGES[currentStageIndex];
-            state.enemy.energy = state.enemy.maxEnergy;
-            state.enemy.handCount = Math.min(6, state.enemy.handCount + 1);
+            const intent = state.nextEnemyIntent;
 
-            // 若敌方复苏度过高（>=75%），优先压制自身厉鬼
-            if (state.enemy.revival >= 75) {
-                state.enemy.revival = Math.max(10, state.enemy.revival - 25);
+            if (intent.type === 'suppress') {
+                state.enemy.revival = Math.max(5, state.enemy.revival - 22);
                 SoundFX.playSuppress();
-                showFloatingText('enemyAvatar', '压制 -25%', '#34d399');
-                addLog(`${state.enemy.name} 动用灵异底牌强行压制自身复苏，复苏度降低 25%！`);
-                finishEnemyTurn();
-                return;
-            }
-
-            // 根据关卡类型触发专属恐怖规律
-            let actionRoll = Math.random();
-            if (stage.aiStyle === 'cleaver' && state.turn % 2 === 0) {
-                const dmg = 10;
-                applyDamageToPlayer(dmg, false);
+                showFloatingText('enemyAvatar', '压制 -22%', '#34d399');
+                addLog(`${state.enemy.name} 动用底牌强行压制自身复苏，复苏度降低 22%！`);
+            } else if (intent.type === 'pierce') {
+                applyDamageToPlayer(intent.dmg, true);
                 state.enemy.revival += 12;
                 SoundFX.playAttack();
+                FXEngine.spawnBeam('enemyAvatar', 'playerAvatar', '#ef4444', false);
                 renderPlayedCardPreview({
-                    icon: '🪓',
-                    name: '高大男尸·媒介劈砍',
-                    tag: '恐怖规律',
+                    icon: intent.icon,
+                    name: `${state.enemy.name}·穿透规律`,
+                    tag: '无视护盾',
                     color: 'text-red-500',
-                    desc: `踩中脚印触发柴刀劈砍，造成 ${dmg} 点恐怖撕裂伤害！`
+                    desc: `无视灵异护盾直接冲击意识，造成 ${intent.dmg} 点伤害！`
                 }, '敌方触发');
-                addLog(`${state.enemy.name} 挥动生锈柴刀触发媒介袭击，造成 ${dmg} 点伤害！`);
-            } else if (stage.aiStyle === 'boss' && state.turn % 2 === 0) {
-                const dmg = 8;
-                const revInc = 12;
-                applyDamageToPlayer(dmg, true);
-                state.player.revival += revInc;
-                state.enemy.revival += 8;
+                addLog(`${state.enemy.name} 触发穿透规律，无视护盾造成 ${intent.dmg} 点伤害！`);
+            } else if (intent.type === 'curse') {
+                applyDamageToPlayer(intent.dmg, false);
+                injectCurseCard();
+                state.enemy.revival += 10;
                 SoundFX.playHorror();
-                showFloatingText('playerAvatar', `落单压制 -${dmg} / 复苏+${revInc}%`, '#ef4444');
+                FXEngine.spawnBeam('enemyAvatar', 'playerAvatar', '#a855f7', false);
                 renderPlayedCardPreview({
-                    icon: '⚰️',
-                    name: '鬼差·无解压制',
-                    tag: 'S级规律',
-                    color: 'text-red-500',
-                    desc: `无视防护造成 ${dmg} 点伤害，并强行引动你体内厉鬼复苏 +${revInc}%！`
-                }, '敌方触发');
-                addLog(`${state.enemy.name} 触发【落单压制】，造成 ${dmg} 点穿透伤害并使你复苏 +${revInc}%！`);
-            } else if (stage.aiStyle === 'painting' && state.turn % 2 === 1) {
-                const revInc = 15;
-                state.player.revival += revInc;
-                state.enemy.shield += 8;
-                SoundFX.playHorror();
-                showFloatingText('playerAvatar', `鬼画同化 复苏+${revInc}%`, '#a855f7');
-                renderPlayedCardPreview({
-                    icon: '🖼️',
-                    name: '鬼画·世界同化',
-                    tag: 'S级源头',
+                    icon: intent.icon,
+                    name: `${state.enemy.name}·灵异污染`,
+                    tag: '诅咒侵蚀',
                     color: 'text-purple-400',
-                    desc: `灰白世界吞噬现实，使你体内厉鬼复苏加速 +${revInc}%，敌方获 8 点护盾！`
+                    desc: `造成 ${intent.dmg} 点伤害，并将一张【鬼奴印记】塞入你的手牌！`
                 }, '敌方触发');
-                addLog(`${state.enemy.name} 展开绝望灰界，你的复苏度被迫增加 ${revInc}%！`);
-            } else if (actionRoll < 0.65) {
-                const baseDmg = 6 + currentStageIndex;
-                const revCost = 12;
-                applyDamageToPlayer(baseDmg, false);
-                state.enemy.revival += revCost;
+                addLog(`${state.enemy.name} 侵蚀了你的意识并污染了你的手牌！`);
+            } else if (intent.type === 'slash') {
+                applyDamageToPlayer(intent.dmg, false);
+                state.enemy.revival += 14;
                 SoundFX.playAttack();
+                FXEngine.spawnBeam('enemyAvatar', 'playerAvatar', '#dc2626', true);
                 renderPlayedCardPreview({
-                    icon: '🩸',
-                    name: `${state.enemy.name.split('·')[0]}·灵异袭击`,
-                    tag: '恐怖袭击',
-                    color: 'text-red-400',
-                    desc: `恐怖的灵异力量撕裂黑暗，对你造成 ${baseDmg} 点意识冲击！`
+                    icon: intent.icon,
+                    name: `${state.enemy.name}·恐怖劈砍`,
+                    tag: '高危袭击',
+                    color: 'text-red-500',
+                    desc: `恐怖的灵异袭击撕裂防御，造成 ${intent.dmg} 点重击伤害！`
                 }, '敌方发动');
-                addLog(`${state.enemy.name} 发动灵异袭击，造成 ${baseDmg} 点伤害（敌方复苏 +${revCost}%）。`);
-            } else {
-                const shieldGain = 7 + currentStageIndex;
-                state.enemy.shield += shieldGain;
+                addLog(`${state.enemy.name} 发动恐怖劈砍，造成 ${intent.dmg} 点伤害！`);
+            } else if (intent.type === 'shield') {
+                state.enemy.shield += intent.shield;
                 state.enemy.revival += 10;
                 SoundFX.playCard();
-                showFloatingText('enemyAvatar', `鬼域护盾 +${shieldGain}`, '#60a5fa');
+                showFloatingText('enemyAvatar', `鬼域护盾 +${intent.shield}`, '#60a5fa');
                 renderPlayedCardPreview({
-                    icon: '🌑',
-                    name: '阴霾鬼域·笼罩',
+                    icon: intent.icon,
+                    name: '深层鬼域·隔绝',
                     tag: '灵异防护',
-                    color: 'text-purple-400',
-                    desc: `黑暗侵蚀战场，敌方获得 ${shieldGain} 点意识护盾。`
+                    color: 'text-blue-400',
+                    desc: `敌方展开深层防护，获得 ${intent.shield} 点护盾。`
                 }, '敌方展开');
-                addLog(`${state.enemy.name} 展开阴霾鬼域，获得 ${shieldGain} 点护盾。`);
+                addLog(`${state.enemy.name} 叠加鬼域防护，获得 ${intent.shield} 点护盾。`);
+            } else if (intent.type === 'boss_drain') {
+                applyDamageToPlayer(intent.dmg, true);
+                state.player.revival += intent.rev;
+                state.enemy.revival += 8;
+                SoundFX.playHorror();
+                FXEngine.spawnBeam('enemyAvatar', 'playerAvatar', '#9333ea', false);
+                showFloatingText('playerAvatar', `落单压制 复苏+${intent.rev}%`, '#ef4444');
+                renderPlayedCardPreview({
+                    icon: intent.icon,
+                    name: '鬼差·落单必死',
+                    tag: 'S级规律',
+                    color: 'text-red-500',
+                    desc: `造成 ${intent.dmg} 点穿透伤害，并强行引动你体内厉鬼复苏 +${intent.rev}%！`
+                }, '敌方触发');
+                addLog(`${state.enemy.name} 触发【落单必死】，造成 ${intent.dmg} 点穿透伤并使你复苏 +${intent.rev}%！`);
+            } else if (intent.type === 'domain_up') {
+                state.enemy.shield += intent.shield;
+                state.enemy.revival = Math.max(0, state.enemy.revival - 15);
+                SoundFX.playSuppress();
+                showFloatingText('enemyAvatar', `护盾+${intent.shield} / 复苏-15%`, '#60a5fa');
+                renderPlayedCardPreview({
+                    icon: intent.icon,
+                    name: '恐怖重启',
+                    tag: 'S级恢复',
+                    color: 'text-purple-400',
+                    desc: `敌方重启自身状态，获得 ${intent.shield} 点护盾并降低 15% 复苏度！`
+                }, '敌方触发');
+                addLog(`${state.enemy.name} 触发灵异重启，恢复防护并压制自身复苏！`);
+            } else if (intent.type === 'painting_curse') {
+                applyDamageToPlayer(intent.dmg, false);
+                state.player.revival += intent.rev;
+                injectCurseCard();
+                SoundFX.playHorror();
+                FXEngine.spawnBeam('enemyAvatar', 'playerAvatar', '#e4e4e7', false);
+                renderPlayedCardPreview({
+                    icon: intent.icon,
+                    name: '鬼画·绝望同化',
+                    tag: '灭世源头',
+                    color: 'text-zinc-200',
+                    desc: `灰白世界吞噬一切！造成 ${intent.dmg} 点伤害，你复苏 +${intent.rev}% 且手牌被污染！`
+                }, '敌方触发');
+                addLog(`${state.enemy.name} 释放灰白同化，你的复苏度激增 +${intent.rev}% 且手牌受到诅咒！`);
             }
 
             finishEnemyTurn();
@@ -1009,9 +1357,10 @@
                 state.player.maxEnergy = Math.min(5, 3 + Math.floor((state.turn - 1) / 2));
                 state.player.energy = state.player.maxEnergy;
                 drawCards(2);
+                planNextEnemyIntent();
 
                 addLog(`=== 第 ${state.turn} 夜降临 · 你的回合 ===`);
-                setStageDisplay('夜色更深了，谨慎抉择每一张灵异卡牌……');
+                setStageDisplay('夜色更深了，注意顶部敌方的杀人规律预警……');
                 updateUI();
             }, 900);
         }
@@ -1023,7 +1372,7 @@
             triggerShake('playerAvatar');
             if (ignoreShield) {
                 state.player.hp = Math.max(0, state.player.hp - dmg);
-                showFloatingText('playerAvatar', `-${dmg}`, '#ef4444');
+                showFloatingText('playerAvatar', `-${dmg} (穿透)`, '#ef4444');
             } else {
                 const absorbed = Math.min(state.player.shield, dmg);
                 state.player.shield -= absorbed;
@@ -1032,7 +1381,7 @@
                 if (remain > 0) {
                     showFloatingText('playerAvatar', `-${remain}`, '#ef4444');
                 } else {
-                    showFloatingText('playerAvatar', `护盾抵消`, '#60a5fa');
+                    showFloatingText('playerAvatar', `护盾完全抵消`, '#60a5fa');
                 }
             }
         }
@@ -1150,7 +1499,7 @@
         }
 
         /**
-         * 更新双方战场状态徽章（护盾/鬼域加成）
+         * 更新双方战场状态徽章
          */
         function updateFieldArea() {
             const enemyField = document.getElementById('enemyFieldArea');
@@ -1159,6 +1508,9 @@
             let enemyBadges = [];
             if (state.enemy.shield > 0) {
                 enemyBadges.push(`<span class="px-2.5 py-1 rounded-md bg-blue-950/80 border border-blue-700/70 text-blue-300 text-xs font-bold">🛡️ 鬼域护盾: ${state.enemy.shield}</span>`);
+            }
+            if (state.enemy.phase2Triggered) {
+                enemyBadges.push(`<span class="px-2.5 py-1 rounded-md bg-purple-950/80 border border-purple-700/70 text-purple-300 text-xs font-bold">🔥 深层复苏形态</span>`);
             }
             if (state.enemy.revival >= 70) {
                 enemyBadges.push(`<span class="px-2.5 py-1 rounded-md bg-red-950/80 border border-red-700/70 text-red-300 text-xs font-bold animate-pulse">⚠️ 濒临复苏</span>`);
@@ -1170,10 +1522,10 @@
                 playerBadges.push(`<span class="px-2.5 py-1 rounded-md bg-blue-950/80 border border-blue-700/70 text-blue-300 text-xs font-bold">🛡️ 灵异防护: ${state.player.shield}</span>`);
             }
             if (state.player.domainBonus > 0) {
-                playerBadges.push(`<span class="px-2.5 py-1 rounded-md bg-rose-950/80 border border-rose-600/80 text-rose-300 text-xs font-bold">👁️ 鬼域加持 (+${state.player.domainBonus}攻)</span>`);
+                playerBadges.push(`<span class="px-2.5 py-1 rounded-md bg-rose-950/80 border border-rose-600/80 text-rose-300 text-xs font-bold">👁️ 鬼域蓄力 (+${state.player.domainBonus}攻)</span>`);
             }
             if (state.player.revival >= 70) {
-                playerBadges.push(`<span class="px-2.5 py-1 rounded-md bg-red-950/80 border border-red-600/80 text-red-300 text-xs font-bold animate-pulse">⚠️ 鬼眼躁动警告</span>`);
+                playerBadges.push(`<span class="px-2.5 py-1 rounded-md bg-red-950/80 border border-red-600/80 text-red-300 text-xs font-bold animate-pulse">⚠️ 鬼眼失控濒死</span>`);
             }
             playerField.innerHTML = playerBadges.length ? playerBadges.join('') : '<div class="text-xs text-zinc-600 italic">我方驾驭厉鬼处于沉寂状态</div>';
         }
@@ -1185,6 +1537,8 @@
             // 敌方信息
             document.getElementById('enemyName').textContent = state.enemy.name;
             document.getElementById('enemyRankBadge').textContent = state.enemy.rank;
+            document.getElementById('enemyDomainLevelBadge').textContent = `鬼域: ${state.enemy.domainLevel}层`;
+
             const enemyHpPct = Math.max(0, (state.enemy.hp / state.enemy.maxHp) * 100);
             document.getElementById('enemyHpBar').style.width = `${enemyHpPct}%`;
             document.getElementById('enemyHpText').textContent = `${state.enemy.hp}/${state.enemy.maxHp}`;
@@ -1192,13 +1546,12 @@
             const enemyRevPct = Math.min(100, state.enemy.revival);
             document.getElementById('enemyRevivalBar').style.width = `${enemyRevPct}%`;
             document.getElementById('enemyRevivalText').textContent = `${enemyRevPct}%`;
-            document.getElementById('enemyEnergyText').textContent = `${state.enemy.energy}/${state.enemy.maxEnergy}`;
 
-            // 敌方卡背视觉
-            const enemyHandEl = document.getElementById('enemyHandVisual');
-            enemyHandEl.innerHTML = Array(state.enemy.handCount).fill(0).map(() =>
-                `<div class="w-4 h-6 rounded-xs card-back"></div>`
-            ).join('');
+            // 敌方规律意图更新
+            if (state.nextEnemyIntent) {
+                document.getElementById('enemyIntentText').textContent = `${state.nextEnemyIntent.icon} ${state.nextEnemyIntent.label}`;
+                document.getElementById('enemyIntentTextMobile').textContent = `${state.nextEnemyIntent.icon} ${state.nextEnemyIntent.label}`;
+            }
 
             // 我方信息
             const playerHpPct = Math.max(0, (state.player.hp / state.player.maxHp) * 100);
@@ -1209,6 +1562,28 @@
             document.getElementById('playerRevivalBar').style.width = `${playerRevPct}%`;
             document.getElementById('playerRevivalText').textContent = `${playerRevPct}%`;
             document.getElementById('playerEnergyText').textContent = `${state.player.energy} / ${state.player.maxEnergy}`;
+
+            // 屏幕血丝濒死视觉警告（复苏度>=65%触发心跳红晕）
+            const vignette = document.getElementById('revivalVignette');
+            if (state.player.revival >= 65) {
+                vignette.classList.add('revival-danger-high');
+            } else {
+                vignette.classList.remove('revival-danger-high');
+            }
+
+            // 鬼域层数对抗指示器
+            const mult = getDomainMultiplier();
+            const domainBadge = document.getElementById('domainClashBadge');
+            if (mult < 1) {
+                domainBadge.textContent = `鬼域被压制：我方${state.player.domainLevel}层 vs 敌方${state.enemy.domainLevel}层 (伤害${Math.round(mult * 100)}%)`;
+                domainBadge.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-red-950/80 border border-red-700/70 text-red-300';
+            } else if (mult > 1) {
+                domainBadge.textContent = `鬼域碾压：我方${state.player.domainLevel}层 vs 敌方${state.enemy.domainLevel}层 (伤害130%!)`;
+                domainBadge.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950/80 border border-amber-500/70 text-amber-300';
+            } else {
+                domainBadge.textContent = `鬼域持平：我方${state.player.domainLevel}层 vs 敌方${state.enemy.domainLevel}层 (伤害100%)`;
+                domainBadge.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-zinc-900 border border-zinc-700 text-zinc-300';
+            }
 
             // 回合标签与按钮状态
             const turnBadge = document.getElementById('turnBadge');
@@ -1233,7 +1608,7 @@
 
                 return `
                     <div onclick="playCard('${card.uid}')"
-                         class="ghost-card ${canAfford ? 'cursor-pointer' : 'disabled'} w-28 sm:w-36 h-40 sm:h-48 rounded-lg p-2 sm:p-2.5 flex flex-col justify-between shrink-0 select-none">
+                         class="ghost-card ${card.isCurse ? 'cursed-card' : ''} ${canAfford ? 'cursor-pointer' : 'disabled'} w-28 sm:w-36 h-40 sm:h-48 rounded-lg p-2 sm:p-2.5 flex flex-col justify-between shrink-0 select-none">
                         <div>
                             <div class="flex items-center justify-between gap-1">
                                 <span class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-700/80 ${card.color}">${card.tag}</span>
@@ -1242,9 +1617,9 @@
                             <div class="text-center my-1.5 sm:my-2 text-2xl sm:text-3xl drop-shadow">${card.icon}</div>
                             <div class="font-bold text-[11px] sm:text-xs text-zinc-100 text-center truncate">${card.name}</div>
                         </div>
-                        <p class="text-[9px] sm:text-[10px] text-zinc-400 leading-tight line-clamp-3 my-1">${card.desc}</p>
+                        <p class="text-[9px] sm:text-[10px] text-zinc-300 leading-tight line-clamp-3 my-1">${card.desc}</p>
                         <div class="pt-1 border-t border-zinc-800/90 flex items-center justify-between text-[9px] sm:text-[10px]">
-                            <span class="text-zinc-500">代价</span>
+                            <span class="text-zinc-500">${card.isCurse ? '净化' : '代价'}</span>
                             ${revBadge}
                         </div>
                     </div>
@@ -1292,7 +1667,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="text-amber-400 font-bold">第 ${idx + 1} 夜</span>
                                 <span class="text-zinc-100 font-bold">${st.name}</span>
-                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-950 text-red-300 border border-red-800/60">${st.rank}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-950 text-red-300 border border-red-800/60">${st.rank} · 鬼域${st.domainLevel}层</span>
                             </div>
                             <p class="text-[11px] text-zinc-400 mt-1">${st.intro}</p>
                         </div>
@@ -1330,7 +1705,7 @@
             const floater = document.createElement('div');
             floater.className = 'floating-text text-xs sm:text-sm';
             floater.style.color = color;
-            floater.style.left = `${rect.left + rect.width / 2 - 24}px`;
+            floater.style.left = `${rect.left + rect.width / 2 - 36}px`;
             floater.style.top = `${rect.top}px`;
             floater.textContent = text;
             document.body.appendChild(floater);
@@ -1338,6 +1713,7 @@
         }
 
         window.onload = function () {
+            FXEngine.init();
             initGame(0);
         };
     </script>
