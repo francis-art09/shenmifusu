@@ -231,25 +231,35 @@
         <label class="block text-xs uppercase tracking-wider text-amber-400/90 font-bold mb-2">
           第一步：选择驭鬼者卡组档案
         </label>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="deck-selector">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5" id="deck-selector">
           <div onclick="selectDeck('yangjian')" id="deck-card-yangjian"
-               class="cursor-pointer rounded-xl p-3.5 border-2 border-amber-500 bg-amber-950/25 transition-all">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-amber-300 text-sm sm:text-base">👁️ 大昌市·杨间叠加流</span>
-              <span class="text-[11px] px-2 py-0.5 rounded bg-amber-600/30 text-amber-200 border border-amber-500/50">拼图/鬼域</span>
+               class="cursor-pointer rounded-xl p-3 border-2 border-amber-500 bg-amber-950/25 transition-all">
+            <div class="flex items-center justify-between gap-1">
+              <span class="font-bold text-amber-300 text-xs sm:text-sm">👁️ 大昌市·杨间叠加流</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-600/30 text-amber-200 border border-amber-500/50 shrink-0">拼图</span>
             </div>
-            <p class="text-xs text-stone-400 mt-1.5 leading-relaxed">
-              核心机制【拼图叠加】：将鬼眼、无头鬼影、鬼手融合至杨间身上，继承全部属性与技能，配合黄金容器压制复苏！
+            <p class="text-[11px] text-stone-400 mt-1.5 leading-relaxed">
+              将鬼眼、无头鬼影、鬼手、鬼童拼图融合至杨间身上，继承全部属性与词条！
             </p>
           </div>
           <div onclick="selectDeck('ghost_tide')" id="deck-card-ghost_tide"
-               class="cursor-pointer rounded-xl p-3.5 border border-stone-700 bg-stone-900/50 hover:border-red-700 transition-all">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-red-300 text-sm sm:text-base">🕯️ 灵异公交·厉鬼压制流</span>
-              <span class="text-[11px] px-2 py-0.5 rounded bg-red-900/40 text-red-200 border border-red-700/50">守护/斩杀</span>
+               class="cursor-pointer rounded-xl p-3 border border-stone-700 bg-stone-900/50 hover:border-red-700 transition-all">
+            <div class="flex items-center justify-between gap-1">
+              <span class="font-bold text-red-300 text-xs sm:text-sm">🕯️ 灵异公交·厉鬼压制流</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-900/40 text-red-200 border border-red-700/50 shrink-0">守护</span>
             </div>
-            <p class="text-xs text-stone-400 mt-1.5 leading-relaxed">
-              高防守护封锁前线，配合鬼敲门、饿死鬼阶段进化与鬼烛防御，稳步推进碾压敌方总部。
+            <p class="text-[11px] text-stone-400 mt-1.5 leading-relaxed">
+              高防守护封锁前线，配合饿死鬼、柳三纸人替死与鬼敲门稳步碾压。
+            </p>
+          </div>
+          <div onclick="selectDeck('hq_captains')" id="deck-card-hq_captains"
+               class="cursor-pointer rounded-xl p-3 border border-stone-700 bg-stone-900/50 hover:border-cyan-700 transition-all">
+            <div class="flex items-center justify-between gap-1">
+              <span class="font-bold text-cyan-300 text-xs sm:text-sm">🏛️ 总部队长·民国传承流</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-900/40 text-cyan-200 border border-cyan-700/50 shrink-0">王牌</span>
+            </div>
+            <p class="text-[11px] text-stone-400 mt-1.5 leading-relaxed">
+              集结李军、叶真、童倩、王小明与民国活人秦老，全明星高强度正面强攻！
             </p>
           </div>
         </div>
@@ -261,14 +271,23 @@
         <div class="rounded-xl p-4 bg-stone-950/80 border border-stone-800 flex flex-col justify-between">
           <div>
             <h2 class="text-base font-bold text-amber-200 flex items-center gap-2">
-              <span>⚔️ 单人灵异推演</span>
+              <span>⚔️ 单人灵异推演 (9大首领)</span>
             </h2>
-            <p class="text-xs text-stone-400 mt-1 mb-3">挑战总部记录在案的恐怖目标：</p>
-            <select id="ai-boss-select" class="w-full rounded-lg bg-stone-900 border border-stone-700 text-stone-200 text-xs sm:text-sm p-2.5 mb-3 focus:outline-none focus:border-amber-500">
-              <option value="fangshiming">S级档案：朋友圈·方世明（鬼剪刀突袭）</option>
-              <option value="knocker">A级档案：敲门鬼·罗文松（高频指令斩杀）</option>
-              <option value="ghost_sheriff">S级档案：鬼差（无限叠加恐怖压制）</option>
+            <p class="text-xs text-stone-400 mt-1 mb-2">选择总部档案中的恐怖首领（含专属灵异机制）：</p>
+            <select id="ai-boss-select" onchange="updateBossPreview()" class="w-full rounded-lg bg-stone-900 border border-stone-700 text-stone-200 text-xs sm:text-sm p-2 mb-2 focus:outline-none focus:border-amber-500">
+              <option value="fangshiming">【常规】A级档案：朋友圈·方世明（鬼剪刀突袭）</option>
+              <option value="knocker">【常规】A级档案：敲门鬼·罗文松（高频指令斩杀）</option>
+              <option value="ghost_sheriff">【困难】S级档案：鬼差（数量压制·单体无解）</option>
+              <option value="yezhen">【困难】大海市·叶真（替死鬼免死·霸道强攻）</option>
+              <option value="lijun">【困难】队长·李军（鬼火焚烧·全场持续灼伤）</option>
+              <option value="ghost_painting">【噩梦】S级档案：鬼画（衍生画中鬼·无限扩张）</option>
+              <option value="ghost_lake">【噩梦】S级档案：鬼湖（溺亡沉没·全员减攻压制）</option>
+              <option value="zhangdong">【绝密】民国古宅·张洞（抹除规律·直接抹杀）</option>
+              <option value="qinlao">【绝密】民国活人·秦老（天克万鬼·镇压全场）</option>
             </select>
+            <div id="boss-passive-preview" class="text-[11px] text-amber-300/90 bg-red-950/30 border border-red-900/50 rounded-lg p-2 mb-3 leading-snug">
+              首领规律：方世明每回合开始时若场上无单位，免费召唤一名朋友圈驭鬼者。
+            </div>
           </div>
           <button onclick="startSinglePlayer()"
                   class="w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-700 to-red-800 hover:from-amber-600 hover:to-red-700 text-amber-50 shadow-lg border border-amber-500/40 transition active:scale-95">
@@ -614,9 +633,9 @@
         opCost: 1,
         atk: 2,
         hp: 4,
-        keywords: ['vessel'], // 拼图容器：可接收厉鬼拼图叠加
+        keywords: ['vessel'],
         icon: '👁️',
-        desc: '【拼图容器】可叠加任意厉鬼拼图，永久继承其攻防与词条。每次叠加复苏度+12%。'
+        desc: '【拼图容器】可叠加任意厉鬼拼图，永久继承攻防与词条。每次叠加复苏度+12%。'
       },
       // --- 可叠加的厉鬼拼图单位 ---
       ghost_eye: {
@@ -627,7 +646,7 @@
         opCost: 1,
         atk: 2,
         hp: 2,
-        keywords: ['domain', 'puzzle'], // 鬼域(远程无伤反击) + 可叠加拼图
+        keywords: ['domain', 'puzzle'],
         icon: '🔴',
         desc: '【鬼域】【拼图】可在支援阵地跨过前线远程打击且不受反击。可叠加至场上单位！'
       },
@@ -639,7 +658,7 @@
         opCost: 1,
         atk: 3,
         hp: 3,
-        keywords: ['blitz', 'puzzle'], // 袭击(部署/移动当回合可攻击) + 可叠加拼图
+        keywords: ['blitz', 'puzzle'],
         icon: '👤',
         desc: '【袭击】【拼图】部署或移入前线当回合即可攻击。可叠加至场上单位拼接身体！'
       },
@@ -651,9 +670,162 @@
         opCost: 1,
         atk: 2,
         hp: 3,
-        keywords: ['guard', 'puzzle'], // 守护 + 可叠加拼图
+        keywords: ['guard', 'puzzle'],
         icon: '🖐️',
         desc: '【守护】【拼图】在前线时保护相邻单位与总部不被直接攻击。可叠加至场上单位！'
+      },
+      ghost_child: {
+        id: 'ghost_child',
+        name: '鬼童·吞噬',
+        type: 'unit',
+        cost: 2,
+        opCost: 1,
+        atk: 2,
+        hp: 2,
+        keywords: ['blitz', 'puzzle'],
+        icon: '👶',
+        desc: '【袭击】【拼图】部署时使我方复苏度-10%，可叠加至杨间身上化为恐怖拼图！',
+        onDeploy: (state, side) => {
+          state[side].resurgence = Math.max(0, state[side].resurgence - 10);
+          addLog(`👶 【鬼童】吞噬灵异余波，${side === 'player' ? '我方' : '敌方'}复苏度降低10%！`);
+        }
+      },
+      // --- 原著新增角色卡 ---
+      li_jun: {
+        id: 'li_jun',
+        name: '队长·李军',
+        type: 'unit',
+        cost: 4,
+        opCost: 1,
+        atk: 3,
+        hp: 5,
+        keywords: ['guard', 'domain'],
+        icon: '🔥',
+        desc: '【守护】【鬼域】绿色鬼火燃尽万物！进场时对敌方前线全体造成 2 点鬼火伤害。',
+        onDeploy: (state, side) => {
+          const opp = side === 'player' ? 'enemy' : 'player';
+          if (state.frontlineOwner === opp) {
+            state.frontline.forEach((u, i) => {
+              if (u) {
+                u.hp -= 2;
+                if (u.hp <= 0) state.frontline[i] = null;
+              }
+            });
+            if (state.frontline.every(u => u === null)) state.frontlineOwner = null;
+            addLog(`🔥 【李军】展开绿色鬼火鬼域，焚烧前线敌军造成 2 点伤害！`);
+          }
+        }
+      },
+      ye_zhen: {
+        id: 'ye_zhen',
+        name: '灵异论坛·叶真',
+        type: 'unit',
+        cost: 5,
+        opCost: 1,
+        atk: 5,
+        hp: 4,
+        keywords: ['blitz'],
+        icon: '🗡️',
+        desc: '【袭击】天下无敌替死鬼！进场获得一次【替死】护盾，抵挡致命伤并恢复至满血。',
+        onDeployCustom: (unit) => {
+          unit.hasSubstitute = true;
+        }
+      },
+      tong_qian: {
+        id: 'tong_qian',
+        name: '鬼脸·童倩',
+        type: 'unit',
+        cost: 3,
+        opCost: 1,
+        atk: 2,
+        hp: 4,
+        keywords: ['domain'],
+        icon: '🎭',
+        desc: '【鬼域】哭脸笑脸双鬼共鸣：进场使所有敌方单位攻击力永久 -1。',
+        onDeploy: (state, side) => {
+          const opp = side === 'player' ? 'enemy' : 'player';
+          state[opp].support.forEach(u => { if (u) u.atk = Math.max(0, u.atk - 1); });
+          if (state.frontlineOwner === opp) {
+            state.frontline.forEach(u => { if (u) u.atk = Math.max(0, u.atk - 1); });
+          }
+          addLog(`🎭 【童倩】发出诡异笑声，敌方全体单位攻击力 -1！`);
+        }
+      },
+      liu_san: {
+        id: 'liu_san',
+        name: '纸人·柳三',
+        type: 'unit',
+        cost: 3,
+        opCost: 1,
+        atk: 2,
+        hp: 3,
+        keywords: ['guard'],
+        icon: '🎎',
+        desc: '【守护】纸人替身：进场在相邻空位召唤一个 2/2 具有【守护】的灵异纸人。',
+        onDeploy: (state, side) => {
+          const emptyIdx = state[side].support.findIndex(s => s === null);
+          if (emptyIdx !== -1) {
+            state[side].support[emptyIdx] = createUnitInstance('paper_clone');
+            addLog(`🎎 【柳三】剪纸成兵，在支援阵地召唤了【灵异纸人】！`);
+          }
+        }
+      },
+      paper_clone: {
+        id: 'paper_clone',
+        name: '灵异纸人',
+        type: 'unit',
+        cost: 1,
+        opCost: 1,
+        atk: 2,
+        hp: 2,
+        keywords: ['guard'],
+        icon: '🪆',
+        desc: '【守护】柳三剪出的灵异纸人替身。'
+      },
+      wang_xiaoming: {
+        id: 'wang_xiaoming',
+        name: '教授·王小明',
+        type: 'unit',
+        cost: 3,
+        opCost: 2,
+        atk: 1,
+        hp: 4,
+        keywords: [],
+        icon: '🧪',
+        desc: '【绝密实验】进场抽取 2 张牌，并使双方厉鬼复苏度立即降低 20%。',
+        onDeploy: (state, side) => {
+          drawCards(side, 2);
+          state[side].resurgence = Math.max(0, state[side].resurgence - 20);
+          addLog(`🧪 【王小明】制定灵异压制方案，抽2张牌并降低20%复苏度！`);
+        }
+      },
+      qin_lao: {
+        id: 'qin_lao',
+        name: '民国活人·秦老',
+        type: 'unit',
+        cost: 7,
+        opCost: 2,
+        atk: 6,
+        hp: 8,
+        keywords: ['guard', 'domain', 'blitz'],
+        icon: '👴',
+        desc: '【袭击】【守护】【鬼域】民国时期镇压时代的活人，天克万鬼，进场清零我方复苏度！',
+        onDeploy: (state, side) => {
+          state[side].resurgence = 0;
+          addLog(`👴 【秦老】拄拐降临战场，恐怖气息镇压全场，我方复苏度彻底清零！`);
+        }
+      },
+      painting_ghost: {
+        id: 'painting_ghost',
+        name: '鬼画·衍生体',
+        type: 'unit',
+        cost: 2,
+        opCost: 1,
+        atk: 2,
+        hp: 3,
+        keywords: ['domain'],
+        icon: '🖼️',
+        desc: '【鬼域】从灰暗油画中走出的杀人规律体。'
       },
       ghost_candle_keeper: {
         id: 'ghost_candle_keeper',
@@ -701,7 +873,7 @@
         hp: 6,
         keywords: ['guard'],
         icon: '🚌',
-        desc: '【守护】驶入前线时，压制双方15%厉鬼复苏度。',
+        desc: '【守护】驶入前线时，压制15%厉鬼复苏度。',
         onDeploy: (state, side) => {
           state[side].resurgence = Math.max(0, state[side].resurgence - 15);
           addLog(`🚌 灵异公交车进场，${side === 'player' ? '我方' : '敌方'}厉鬼复苏度降低15%！`);
@@ -765,25 +937,213 @@
       yangjian: [
         'yang_jian', 'yang_jian',
         'ghost_eye', 'ghost_eye', 'ghost_eye',
-        'headless_shadow', 'headless_shadow', 'headless_shadow',
+        'headless_shadow', 'headless_shadow',
         'ghost_hand', 'ghost_hand',
+        'ghost_child', 'ghost_child',
+        'wang_xiaoming',
         'gold_container', 'gold_container',
         'human_skin_paper', 'human_skin_paper',
         'three_layer_domain', 'three_layer_domain',
-        'crash_balance', 'crash_balance',
-        'ghost_knock', 'ghost_bus'
+        'crash_balance', 'ghost_knock'
       ],
       ghost_tide: [
-        'ghost_candle_keeper', 'ghost_candle_keeper', 'ghost_candle_keeper',
+        'ghost_candle_keeper', 'ghost_candle_keeper',
+        'liu_san', 'liu_san',
         'ghost_hand', 'ghost_hand',
         'ghost_bus', 'ghost_bus',
         'starving_ghost', 'starving_ghost',
-        'ghost_eye', 'ghost_eye',
-        'yang_jian',
+        'tong_qian', 'tong_qian',
         'ghost_knock', 'ghost_knock', 'ghost_knock',
         'gold_container', 'gold_container',
         'three_layer_domain', 'crash_balance', 'human_skin_paper'
+      ],
+      hq_captains: [
+        'li_jun', 'li_jun',
+        'ye_zhen', 'ye_zhen',
+        'tong_qian', 'tong_qian',
+        'liu_san', 'liu_san',
+        'wang_xiaoming', 'wang_xiaoming',
+        'qin_lao',
+        'ghost_scissor_user',
+        'ghost_candle_keeper', 'ghost_candle_keeper',
+        'gold_container', 'gold_container',
+        'three_layer_domain', 'three_layer_domain',
+        'crash_balance', 'human_skin_paper'
       ]
+    };
+
+    // =========================================================================
+    // 2.5 9大原著首领配置 (专属总部血量、起始费用与杀人规律)
+    // =========================================================================
+    const BOSS_CONFIGS = {
+      fangshiming: {
+        name: '朋友圈·方世明',
+        hp: 22,
+        startMana: 1,
+        deck: 'hq_captains',
+        passiveDesc: '首领规律：方世明每回合开始时若支援阵地为空，免费召唤1名【鬼剪刀·方世明】。',
+        onTurnStart: (state) => {
+          const empty = state.enemy.support.findIndex(s => s === null);
+          if (state.enemy.support.every(s => s === null) && empty !== -1) {
+            state.enemy.support[empty] = createUnitInstance('ghost_scissor_user');
+            addLog(`✂️ 【首领规律·方世明】暗中袭杀，免费召唤了【朋友圈·方世明】！`);
+          }
+        }
+      },
+      knocker: {
+        name: 'S级·敲门鬼罗文松',
+        hp: 24,
+        startMana: 1,
+        deck: 'ghost_tide',
+        passiveDesc: '首领规律：每回合敲响死亡之门，对我方生命值最低的单位造成 2 点必死灵异伤害！',
+        onTurnStart: (state) => {
+          const targets = [
+            ...state.player.support.map((u, i) => ({ u, zone: 'support', i })),
+            ...(state.frontlineOwner === 'player' ? state.frontline.map((u, i) => ({ u, zone: 'frontline', i })) : [])
+          ].filter(x => x.u !== null);
+          if (targets.length > 0) {
+            targets.sort((a, b) => a.u.hp - b.u.hp);
+            const victim = targets[0];
+            victim.u.hp -= 2;
+            addLog(`🚪 【首领规律·敲门声】咚、咚、咚！对我方【${victim.u.name}】造成 2 点规则伤害！`);
+            if (victim.u.hp <= 0) {
+              if (victim.zone === 'support') state.player.support[victim.i] = null;
+              else {
+                state.frontline[victim.i] = null;
+                if (state.frontline.every(u => u === null)) state.frontlineOwner = null;
+              }
+              addLog(`💀 【${victim.u.name}】在敲门声中触发必死规律阵亡！`);
+            }
+          }
+        }
+      },
+      ghost_sheriff: {
+        name: 'S级·鬼差（无解压制）',
+        hp: 26,
+        startMana: 2,
+        deck: 'ghost_tide',
+        passiveDesc: '首领规律：敌方场上每有一个单位，敌方全体单位每回合结束获得 +1/+1 恐怖叠加！',
+        onTurnStart: (state) => {
+          const allEnemyUnits = [
+            ...state.enemy.support,
+            ...(state.frontlineOwner === 'enemy' ? state.frontline : [])
+          ].filter(u => u !== null);
+          if (allEnemyUnits.length > 0) {
+            allEnemyUnits.forEach(u => { u.atk += 1; u.hp += 1; u.maxHp += 1; });
+            addLog(`🌑 【首领规律·鬼差】重启叠加数量，敌方全体单位获得 +1/+1！`);
+          }
+        }
+      },
+      yezhen: {
+        name: '大海市·叶真（天下无敌）',
+        hp: 25,
+        startMana: 2,
+        deck: 'hq_captains',
+        passiveDesc: '首领规律：叶真拥有替死鬼，每回合敌方总部恢复 2 点生命，且场上首只单位获得【替死】护盾！',
+        onTurnStart: (state) => {
+          state.enemy.hp = Math.min(25, state.enemy.hp + 2);
+          const firstUnit = state.enemy.support.find(u => u !== null) || (state.frontlineOwner === 'enemy' ? state.frontline.find(u => u !== null) : null);
+          if (firstUnit && !firstUnit.hasSubstitute) {
+            firstUnit.hasSubstitute = true;
+            addLog(`🗡️ 【首领规律·叶真】“我叶某人天下无敌！”总部恢复2血，【${firstUnit.name}】获得替死护盾！`);
+          }
+        }
+      },
+      lijun: {
+        name: '总部队长·李军（鬼火焚城）',
+        hp: 25,
+        startMana: 2,
+        deck: 'hq_captains',
+        passiveDesc: '首领规律：阴森绿火蔓延，每回合对【中央前线】的我方单位造成 2 点鬼火伤害，并推高我方 8% 复苏度！',
+        onTurnStart: (state) => {
+          increaseResurgence('player', 8);
+          if (state.frontlineOwner === 'player') {
+            state.frontline.forEach((u, i) => {
+              if (u) {
+                u.hp -= 2;
+                if (u.hp <= 0) state.frontline[i] = null;
+              }
+            });
+            if (state.frontline.every(u => u === null)) state.frontlineOwner = null;
+            addLog(`🔥 【首领规律·鬼火】绿色鬼火灼烧前线我军造成2点伤害，我方复苏度+8%！`);
+          }
+        }
+      },
+      ghost_painting: {
+        name: 'S级档案·鬼画（灰暗世界）',
+        hp: 28,
+        startMana: 2,
+        deck: 'ghost_tide',
+        passiveDesc: '噩梦规律：每回合自动在敌方空余支援位生成 1 只【鬼画·衍生体(2/3 鬼域)】，无限衍生！',
+        onTurnStart: (state) => {
+          const empty = state.enemy.support.findIndex(s => s === null);
+          if (empty !== -1) {
+            state.enemy.support[empty] = createUnitInstance('painting_ghost');
+            addLog(`🖼️ 【噩梦规律·鬼画】油画颜色渗出，一名新的【鬼画·衍生体】走入现实！`);
+          }
+        }
+      },
+      ghost_lake: {
+        name: 'S级档案·鬼湖（沉没侵蚀）',
+        hp: 30,
+        startMana: 2,
+        deck: 'ghost_tide',
+        passiveDesc: '噩梦规律：冰冷湖水淹没战场，每回合使我方全体单位攻击力 -1，且我方总部受到 1 点溺水侵蚀！',
+        onTurnStart: (state) => {
+          state.player.hp = Math.max(0, state.player.hp - 1);
+          state.player.support.forEach(u => { if (u) u.atk = Math.max(0, u.atk - 1); });
+          if (state.frontlineOwner === 'player') {
+            state.frontline.forEach(u => { if (u) u.atk = Math.max(0, u.atk - 1); });
+          }
+          addLog(`🌊 【噩梦规律·鬼湖】死水淹没脚踝，我方总部-1血，我方全体单位攻击力 -1！`);
+        }
+      },
+      zhangdong: {
+        name: '民国古宅·张洞（抹除）',
+        hp: 30,
+        startMana: 3,
+        deck: 'hq_captains',
+        passiveDesc: '绝密规律：每 2 个回合触发一次【抹除】，直接抹除我方场上攻击力最高的一名单位！',
+        onTurnStart: (state) => {
+          if (state.turnNumber % 2 === 0) {
+            const allPlayer = [
+              ...state.player.support.map((u, i) => ({ u, zone: 'support', i })),
+              ...(state.frontlineOwner === 'player' ? state.frontline.map((u, i) => ({ u, zone: 'frontline', i })) : [])
+            ].filter(x => x.u !== null);
+            if (allPlayer.length > 0) {
+              allPlayer.sort((a, b) => b.u.atk - a.u.atk);
+              const target = allPlayer[0];
+              if (target.zone === 'support') state.player.support[target.i] = null;
+              else {
+                state.frontline[target.i] = null;
+                if (state.frontline.every(u => u === null)) state.frontlineOwner = null;
+              }
+              triggerDomainFlash();
+              addLog(`🖐️ 【绝密规律·抹除】张洞抬起枯瘦手掌，我方最强单位【${target.u.name}】被彻底抹除！`);
+            }
+          }
+        }
+      },
+      qinlao: {
+        name: '民国活人·秦老（时代镇压）',
+        hp: 32,
+        startMana: 3,
+        deck: 'hq_captains',
+        passiveDesc: '绝密规律：天克一切厉鬼！每回合我方复苏度强制 +15%，且敌方手牌每回合额外多抽 1 张！',
+        onTurnStart: (state) => {
+          increaseResurgence('player', 15);
+          drawCards('enemy', 1);
+          addLog(`👴 【绝密规律·秦老】时代压制降临，我方厉鬼复苏度强制 +15%，敌方额外抽牌！`);
+        }
+      }
+    };
+
+    window.updateBossPreview = () => {
+      const key = document.getElementById('ai-boss-select').value;
+      const cfg = BOSS_CONFIGS[key];
+      if (cfg) {
+        document.getElementById('boss-passive-preview').textContent = `${cfg.passiveDesc}（初始防御：${cfg.hp}，初始灵异：${cfg.startMana}）`;
+      }
     };
 
     // =========================================================================
@@ -844,7 +1204,7 @@
 
     function createUnitInstance(cardId) {
       const tpl = CARD_DB[cardId];
-      return {
+      const unit = {
         uid: Math.random().toString(36).slice(2, 9),
         cardId: tpl.id,
         name: tpl.name,
@@ -857,8 +1217,11 @@
         keywords: [...tpl.keywords],
         puzzles: [], // 已叠加的厉鬼名称列表
         canAct: tpl.keywords.includes('blitz'), // 袭击词条部署当回合即可行动
-        frozen: false
+        frozen: false,
+        hasSubstitute: false
       };
+      if (tpl.onDeployCustom) tpl.onDeployCustom(unit);
+      return unit;
     }
 
     // =========================================================================
@@ -866,15 +1229,18 @@
     // =========================================================================
     window.selectDeck = (key) => {
       selectedDeckKey = key;
-      const yCard = document.getElementById('deck-card-yangjian');
-      const gCard = document.getElementById('deck-card-ghost_tide');
-      if (key === 'yangjian') {
-        yCard.className = 'cursor-pointer rounded-xl p-3.5 border-2 border-amber-500 bg-amber-950/25 transition-all';
-        gCard.className = 'cursor-pointer rounded-xl p-3.5 border border-stone-700 bg-stone-900/50 hover:border-red-700 transition-all';
-      } else {
-        gCard.className = 'cursor-pointer rounded-xl p-3.5 border-2 border-red-500 bg-red-950/25 transition-all';
-        yCard.className = 'cursor-pointer rounded-xl p-3.5 border border-stone-700 bg-stone-900/50 hover:border-amber-700 transition-all';
-      }
+      const cards = {
+        yangjian: { el: document.getElementById('deck-card-yangjian'), border: 'border-amber-500 bg-amber-950/25' },
+        ghost_tide: { el: document.getElementById('deck-card-ghost_tide'), border: 'border-red-500 bg-red-950/25' },
+        hq_captains: { el: document.getElementById('deck-card-hq_captains'), border: 'border-cyan-500 bg-cyan-950/25' }
+      };
+      Object.entries(cards).forEach(([k, info]) => {
+        if (k === key) {
+          info.el.className = `cursor-pointer rounded-xl p-3 border-2 ${info.border} transition-all`;
+        } else {
+          info.el.className = 'cursor-pointer rounded-xl p-3 border border-stone-700 bg-stone-900/50 hover:border-stone-500 transition-all';
+        }
+      });
     };
 
     window.generateRandomRoom = () => {
@@ -888,20 +1254,22 @@
       myRole = 'host';
       const bossSelect = document.getElementById('ai-boss-select');
       const bossKey = bossSelect.value;
-      const bossNames = {
-        fangshiming: '朋友圈·方世明',
-        knocker: 'S级·敲门鬼',
-        ghost_sheriff: 'S级·鬼差'
-      };
-      const enemyDeck = bossKey === 'fangshiming' ? 'yangjian' : 'ghost_tide';
-      gameState = createInitialState(selectedDeckKey, enemyDeck, bossNames[bossKey]);
+      const bossCfg = BOSS_CONFIGS[bossKey] || BOSS_CONFIGS.fangshiming;
+
+      gameState = createInitialState(selectedDeckKey, bossCfg.deck, bossCfg.name);
+      gameState.enemy.hp = bossCfg.hp;
+      gameState.enemy.maxMana = bossCfg.startMana;
+      gameState.enemy.mana = bossCfg.startMana;
       gameState.aiBossType = bossKey;
-      battleLogs = [`🩸 灵异档案开启：遭遇【${bossNames[bossKey]}】！`];
+      battleLogs = [
+        `🩸 灵异档案开启：遭遇【${bossCfg.name}】！`,
+        `⚠️ ${bossCfg.passiveDesc}`
+      ];
 
       document.getElementById('lobby-screen').classList.add('hidden');
       document.getElementById('game-screen').classList.remove('hidden');
       renderAll();
-      showToast(`已接入灵异战场！当前为你的第 1 回合`);
+      showToast(`已接入灵异战场！对手：【${bossCfg.name}】`);
     };
 
     window.joinMultiplayerRoom = async () => {
@@ -1232,19 +1600,22 @@
       if (tpl.onDeploy) tpl.onDeploy(gameState, 'player');
 
       renderAll();
+      checkGameOver();
       await syncMultiplayerState();
     }
 
-    // 【核心特色】杨间叠加流：将厉鬼拼图融合到场上单位
-    async function fusePuzzleOntoUnit(handIdx, zone, slotIdx) {
+    // 【杨间叠加流】拼图融合：将手牌厉鬼永久叠加到场上容器单位
+    async function fusePuzzleOntoUnit(handIdx, targetZone, targetIdx) {
       const cardId = gameState.player.hand[handIdx];
       const puzzleCard = CARD_DB[cardId];
-      const targetUnit = zone === 'support' ? gameState.player.support[slotIdx] : gameState.frontline[slotIdx];
+      const targetUnit = targetZone === 'support'
+        ? gameState.player.support[targetIdx]
+        : gameState.frontline[targetIdx];
 
       gameState.player.mana -= puzzleCard.cost;
       gameState.player.hand.splice(handIdx, 1);
 
-      // 永久继承攻防与词条
+      // 永久继承攻击力、生命值与特殊词条
       targetUnit.atk += puzzleCard.atk;
       targetUnit.hp += puzzleCard.hp;
       targetUnit.maxHp += puzzleCard.hp;
@@ -1253,19 +1624,16 @@
           targetUnit.keywords.push(kw);
         }
       });
-      if (puzzleCard.keywords.includes('blitz')) {
-        targetUnit.canAct = true;
-      }
       targetUnit.puzzles.push(puzzleCard.name);
 
-      // 增加复苏度警戒值
+      // 推高厉鬼复苏度
       increaseResurgence('player', 12);
+      if (puzzleCard.onDeploy) puzzleCard.onDeploy(gameState, 'player');
 
       selection = null;
       SoundFX.playFuse();
       triggerDomainFlash();
-      showFloatingText(`+${puzzleCard.atk}/+${puzzleCard.hp} 拼图融合!`, window.innerWidth / 2, window.innerHeight / 2, '#22d3ee');
-      addLog(`👁️ 【拼图驾驭】将【${puzzleCard.name}】融合至【${targetUnit.name}】，继承全部灵异力量！`);
+      addLog(`👁️ 【拼图驾驭】将【${puzzleCard.name}】叠加融合至【${targetUnit.name}】！继承+${puzzleCard.atk}/+${puzzleCard.hp}及词条，复苏度+12%！`);
 
       renderAll();
       checkGameOver();
@@ -1387,38 +1755,47 @@
           ? gameState.frontline[targetIdx]
           : gameState.enemy.support[targetIdx];
 
-        // 双方互相造成伤害（若攻击者具有【鬼域】，攻击时不受反击伤害！）
         defender.hp -= attacker.atk;
-        if (!isDomain) {
-          attacker.hp -= defender.atk;
-        }
+        // KARDS【鬼域/轰炸机】规则：攻击时不受反击伤害！
+        const counterDmg = isDomain ? 0 : defender.atk;
+        attacker.hp -= counterDmg;
 
-        showFloatingText(`-${attacker.atk}`, window.innerWidth * 0.5, window.innerHeight * 0.35, '#ef4444');
-        addLog(`⚔️ 【${attacker.name}】攻击【${defender.name}】造成 ${attacker.atk} 伤害${isDomain ? '（鬼域免疫反击）' : `，受到 ${defender.atk} 反击`}。`);
+        addLog(`⚔️ 【${attacker.name}】攻击【${defender.name}】造成 ${attacker.atk} 伤害${isDomain ? '（鬼域远程免反击）' : `，受到 ${counterDmg} 反击`}！`);
 
-        // 清理阵亡单位
+        // 清理阵亡单位（含叶真替死鬼触发判定）
         if (defender.hp <= 0) {
-          addLog(`💀 敌方【${defender.name}】被彻底压制消灭！`);
-          if (targetZone === 'frontline') {
-            gameState.frontline[targetIdx] = null;
-            // 若前线敌方全灭，前线变为无人占领
-            if (gameState.frontline.every(u => u === null)) {
-              gameState.frontlineOwner = null;
-              addLog(`🚩 中央前线敌军肃清，现已无主！`);
-            }
+          if (defender.hasSubstitute) {
+            defender.hasSubstitute = false;
+            defender.hp = defender.maxHp;
+            addLog(`🗡️ 敌方【${defender.name}】触发【替死鬼】护盾，抵挡致命一击并恢复满血！`);
           } else {
-            gameState.enemy.support[targetIdx] = null;
+            addLog(`💀 敌方【${defender.name}】被彻底压制消灭！`);
+            if (targetZone === 'frontline') {
+              gameState.frontline[targetIdx] = null;
+              if (gameState.frontline.every(u => u === null)) {
+                gameState.frontlineOwner = null;
+                addLog(`🚩 中央前线敌军肃清，现已无主！`);
+              }
+            } else {
+              gameState.enemy.support[targetIdx] = null;
+            }
           }
         }
 
         if (attacker.hp <= 0) {
-          addLog(`💀 我方【${attacker.name}】在灵异对抗中消散！`);
-          if (attackerZone === 'support') {
-            gameState.player.support[attackerIdx] = null;
+          if (attacker.hasSubstitute) {
+            attacker.hasSubstitute = false;
+            attacker.hp = attacker.maxHp;
+            addLog(`🗡️ 我方【${attacker.name}】触发【替死鬼】护盾，免死重生！`);
           } else {
-            gameState.frontline[attackerIdx] = null;
-            if (gameState.frontline.every(u => u === null)) {
-              gameState.frontlineOwner = null;
+            addLog(`💀 我方【${attacker.name}】在灵异对抗中消散！`);
+            if (attackerZone === 'support') {
+              gameState.player.support[attackerIdx] = null;
+            } else {
+              gameState.frontline[attackerIdx] = null;
+              if (gameState.frontline.every(u => u === null)) {
+                gameState.frontlineOwner = null;
+              }
             }
           }
         }
@@ -1567,13 +1944,57 @@
       if (!gameState || gameState.winner) return;
       const ai = gameState.enemy;
 
-      // 1. AI 尝试释放指令或部署单位
-      for (let i = ai.hand.length - 1; i >= 0; i--) {
-        const card = CARD_DB[ai.hand[i]];
+      // 0. 触发首领专属灵异杀人规律
+      if (gameState.aiBossType && BOSS_CONFIGS[gameState.aiBossType]?.onTurnStart) {
+        BOSS_CONFIGS[gameState.aiBossType].onTurnStart(gameState);
+        renderAll();
+        if (checkGameOver()) return;
+        await sleep(550);
+      }
+
+      // 1. AI 尝试释放指令或部署单位（优先高费强力单位，提升AI智能度）
+      const playableIndices = ai.hand
+        .map((id, idx) => ({ id, idx, cost: CARD_DB[id]?.cost || 0 }))
+        .sort((a, b) => b.cost - a.cost);
+
+      for (const item of playableIndices) {
+        const i = ai.hand.indexOf(item.id);
+        if (i === -1) continue;
+        const card = CARD_DB[item.id];
         if (!card || ai.mana < card.cost) continue;
 
         if (card.type === 'order') {
-          if (card.id === 'three_layer_domain' || card.id === 'human_skin_paper') {
+          if (card.id === 'ghost_knock') {
+            // AI 智能使用鬼敲门斩杀我方 ≤4 血的高攻单位
+            let knocked = false;
+            if (gameState.frontlineOwner === 'player') {
+              const idx = gameState.frontline.findIndex(u => u && u.hp <= 4);
+              if (idx !== -1) {
+                const victim = gameState.frontline[idx];
+                ai.mana -= card.cost;
+                ai.hand.splice(i, 1);
+                gameState.frontline[idx] = null;
+                if (gameState.frontline.every(u => u === null)) gameState.frontlineOwner = null;
+                addLog(`🚪 敌方释放【鬼敲门】，直接消灭了我方前线【${victim.name}】！`);
+                knocked = true;
+              }
+            }
+            if (!knocked) {
+              const sIdx = gameState.player.support.findIndex(u => u && u.hp <= 4);
+              if (sIdx !== -1) {
+                const victim = gameState.player.support[sIdx];
+                ai.mana -= card.cost;
+                ai.hand.splice(i, 1);
+                gameState.player.support[sIdx] = null;
+                addLog(`🚪 敌方释放【鬼敲门】，直接消灭了我方支援单位【${victim.name}】！`);
+                knocked = true;
+              }
+            }
+            if (knocked) {
+              increaseResurgence('enemy', card.resurgenceCost || 12);
+              SoundFX.playGhostDomain();
+            }
+          } else if (card.id === 'three_layer_domain' || card.id === 'human_skin_paper') {
             ai.mana -= card.cost;
             ai.hand.splice(i, 1);
             if (card.id === 'three_layer_domain') {
@@ -1598,7 +2019,7 @@
         } else if (card.type === 'unit') {
           // 如果AI有杨间或容器在场，且手里有拼图牌，概率进行拼图叠加！
           const vesselIdx = ai.support.findIndex(u => u && canFuseTarget(u));
-          if (card.keywords.includes('puzzle') && vesselIdx !== -1 && Math.random() < 0.65) {
+          if (card.keywords.includes('puzzle') && vesselIdx !== -1 && Math.random() < 0.7) {
             const target = ai.support[vesselIdx];
             ai.mana -= card.cost;
             ai.hand.splice(i, 1);
@@ -1622,6 +2043,7 @@
             ai.support[emptySlot] = newUnit;
             SoundFX.playDeploy();
             addLog(`👹 敌方在支援阵地部署了【${newUnit.name}】！`);
+            if (card.onDeploy) card.onDeploy(gameState, 'enemy');
           }
         }
       }
@@ -1841,9 +2263,11 @@
 
       const readyGlow = unit.canAct && !unit.frozen ? 'ring-1 ring-emerald-400/70' : 'opacity-85';
       const frozenOverlay = unit.frozen ? '<div class="absolute inset-0 bg-amber-500/20 backdrop-blur-[1px] rounded-lg flex items-center justify-center text-[10px] font-bold text-amber-200">📦关押</div>' : '';
+      const subBadge = unit.hasSubstitute ? '<span class="absolute -top-1.5 left-1 px-1 rounded-full bg-amber-500 text-stone-950 text-[8px] font-black shadow">替死</span>' : '';
 
       return `
         <div class="w-full h-full kards-card rounded-lg p-1.5 flex flex-col justify-between relative ${readyGlow} ${isSelected ? 'selected-card' : ''} ${extraClasses}">
+          ${subBadge}
           ${puzzleCount}
           ${frozenOverlay}
           <div class="flex items-center justify-between gap-1">
