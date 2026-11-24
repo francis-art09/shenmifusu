@@ -8,14 +8,112 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Cinzel:wght@600;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-void: #09080a;
-      --parchment-dark: #191512;
-      --parchment-edge: #382c22;
-      --crimson-blood: #991b1b;
+      --bg-void: #070506;
+      --slate-dark: #120d0e;
+      --crimson-blood: #b91c1c;
       --crimson-glow: #ef4444;
+      --crimson-neon: #ff2a2a;
       --gold-seal: #d97706;
       --gold-bright: #fbbf24;
       --ghost-cyan: #06b6d4;
+    }
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-void);
+      /* 焦黑石板纹理 + 暗红血光裂纹 + 底部残垣剪影氛围 */
+      background-image:
+        radial-gradient(ellipse at 50% 45%, rgba(65, 16, 18, 0.28) 0%, rgba(7, 5, 6, 0.96) 76%),
+        radial-gradient(circle at 12% 88%, rgba(185, 28, 28, 0.35) 0%, transparent 42%),
+        radial-gradient(circle at 88% 85%, rgba(153, 27, 27, 0.32) 0%, transparent 40%),
+        linear-gradient(125deg, transparent 42%, rgba(220, 38, 38, 0.14) 42.3%, transparent 42.8%),
+        linear-gradient(218deg, transparent 58%, rgba(239, 68, 68, 0.12) 58.2%, transparent 58.6%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+      color: #e7e5e4;
+      font-family: 'Noto Serif SC', serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    .font-cinzel { font-family: 'Cinzel', serif; }
+
+    /* 暗黑石板与血色金属边框面板 */
+    .dossier-panel {
+      background: linear-gradient(160deg, rgba(22, 16, 17, 0.94) 0%, rgba(10, 7, 8, 0.96) 100%);
+      border: 1px solid rgba(153, 27, 27, 0.45);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.9), inset 0 0 18px rgba(127, 29, 29, 0.15);
+    }
+
+    /* 玩家与敌方角落信息 HUD (还原左上/左下角菱形复苏点槽) */
+    .hud-corner-card {
+      background: linear-gradient(135deg, rgba(24, 18, 19, 0.95) 0%, rgba(12, 9, 10, 0.95) 100%);
+      border: 1px solid rgba(185, 28, 28, 0.55);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.85), inset 0 0 10px rgba(220, 38, 38, 0.15);
+    }
+
+    /* 菱形灵异指挥点宝石 */
+    .mana-diamond {
+      width: 9px;
+      height: 9px;
+      transform: rotate(45deg);
+      border: 1px solid rgba(239, 68, 68, 0.65);
+      background: rgba(20, 12, 13, 0.9);
+      transition: all 0.25s ease;
+    }
+    .mana-diamond.filled-player {
+      background: linear-gradient(135deg, #fb7185, #e11d48);
+      border-color: #ffe4e6;
+      box-shadow: 0 0 6px rgba(244, 63, 94, 0.9);
+    }
+    .mana-diamond.filled-enemy {
+      background: linear-gradient(135deg, #f5f5f4, #a8a29e);
+      border-color: #ffffff;
+      box-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+    }
+
+    /* 总部建筑卡牌牌匾（暗红边框+古宅总部建筑感） */
+    .hq-card-slot {
+      background: linear-gradient(180deg, #240c0e 0%, #100607 100%);
+      border: 1.5px solid #dc2626;
+      box-shadow: 0 0 15px rgba(220, 38, 38, 0.35), inset 0 0 14px rgba(0, 0, 0, 0.9);
+      position: relative;
+    }
+    .hq-card-slot-player {
+      background: linear-gradient(180deg, #261210 0%, #110807 100%);
+      border: 1.5px solid #ef4444;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.38), inset 0 0 14px rgba(0, 0, 0, 0.9);
+      position: relative;
+    }
+
+    /* 战场槽位：暗黑石板深框 + 微弱暗红内边 */
+    .board-slot {
+      background: rgba(12, 9, 10, 0.72);
+      border: 1px solid rgba(153, 27, 27, 0.32);
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.85);
+      transition: all 0.2s ease;
+    }
+
+    /* 正中央前线：严格还原图片中的上下双排鲜红虚线边界！ */
+    .frontline-zone {
+      background: linear-gradient(90deg, rgba(15, 9, 10, 0.55) 0%, rgba(42, 12, 14, 0.35) 50%, rgba(15, 9, 10, 0.55) 100%);
+      border-top: 2px dashed rgba(239, 68, 68, 0.82);
+      border-bottom: 2px dashed rgba(239, 68, 68, 0.82);
+      box-shadow: 0 -4px 14px rgba(220, 38, 38, 0.14), 0 4px 14px rgba(220, 38, 38, 0.14);
+      transition: box-shadow 0.4s ease, border-color 0.4s ease;
+    }
+    .frontline-player-owned {
+      border-top-color: #ff3b3b;
+      border-bottom-color: #ff3b3b;
+      box-shadow: inset 0 0 24px rgba(220, 38, 38, 0.25), 0 0 16px rgba(239, 68, 68, 0.28);
+    }
+    .frontline-enemy-owned {
+      border-top-color: #991b1b;
+      border-bottom-color: #991b1b;
+      box-shadow: inset 0 0 24px rgba(127, 29, 29, 0.32);
     }
     * {
       box-sizing: border-box;
@@ -163,39 +261,42 @@
       background: radial-gradient(circle, rgba(220,38,38,0.5) 0%, rgba(69,10,10,0.85) 100%);
       pointer-events: none;
       z-index: 90;
-      animation: ghostDomainPulse 0.7s ease-out forwards;
+      animation: ghostDomainPulse 0.75s ease-out forwards;
     }
 
-    /* 自定义滚动条隐藏（手牌区） */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-    /* 卡牌细节 */
+    /* 卡牌细节：暗红边框 + 水墨灵异艺术卡面 + 底部黑底白字铭牌 */
     .kards-card {
-      background: linear-gradient(160deg, #27201b 0%, #14100e 100%);
-      border: 1px solid #574435;
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      background: linear-gradient(180deg, #1b1516 0%, #0d090a 100%);
+      border: 1.5px solid #991b1b;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.85), inset 0 0 10px rgba(185, 28, 28, 0.22);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     }
     .kards-card:hover {
-      border-color: #d97706;
+      border-color: #ef4444;
+      box-shadow: 0 6px 18px rgba(220, 38, 38, 0.45);
+    }
+    .card-art-frame {
+      background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.12) 0%, rgba(10, 7, 8, 0.92) 78%);
+      border: 1px solid rgba(127, 29, 29, 0.45);
     }
     .badge-cost {
-      background: radial-gradient(circle at 30% 30%, #fbbf24, #92400e);
-      border: 1px solid #fef3c7;
-      color: #1c1917;
+      background: radial-gradient(circle at 30% 30%, #292524, #090808);
+      border: 1px solid #d6d3d1;
+      color: #fafaf9;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.9);
     }
     .badge-op {
-      background: #1c1917;
-      border: 1px solid #d97706;
-      color: #fbbf24;
+      background: rgba(12, 10, 9, 0.9);
+      border: 1px solid #b91c1c;
+      color: #fca5a5;
     }
     .badge-atk {
-      background: linear-gradient(135deg, #b91c1c, #7f1d1d);
-      border: 1px solid #fca5a5;
+      background: radial-gradient(circle at 30% 30%, #dc2626, #7f1d1d);
+      border: 1px solid #fecaca;
     }
     .badge-hp {
-      background: linear-gradient(135deg, #15803d, #14532d);
-      border: 1px solid #86efac;
+      background: radial-gradient(circle at 30% 30%, #991b1b, #450a0a);
+      border: 1px solid #fca5a5;
     }
   </style>
 </head>
@@ -344,59 +445,79 @@
   <!-- ================= 主战场界面 ================= -->
   <div id="game-screen" class="hidden flex-1 flex flex-col justify-between max-w-6xl w-full mx-auto px-2 py-1.5 sm:px-4 sm:py-2 gap-1.5">
 
-    <!-- 1. 顶部：敌方总部 + 敌方支援阵地 (4槽) -->
+    <!-- 1. 顶部：左上敌方HUD + 敌方支援阵地(含中央总部建筑卡) + 右上回合计时栏 -->
     <div class="grid grid-cols-12 gap-1.5 sm:gap-2 items-stretch">
-      <!-- 敌方总部牌匾 -->
-      <div id="enemy-hq-box" onclick="handleTargetClick('enemy_hq')"
-           class="col-span-4 sm:col-span-3 hq-plaque-enemy rounded-xl p-2 flex flex-col justify-between relative transition">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] sm:text-xs font-bold text-red-300 truncate" id="enemy-name">敌方总部</span>
-          <span class="text-[10px] px-1.5 py-0.2 rounded bg-black/60 text-amber-400 border border-amber-700/50 font-cinzel" id="enemy-mana">1/1</span>
-        </div>
-        <div class="flex items-center justify-between my-1">
-          <div class="flex items-center gap-1">
-            <span class="text-lg sm:text-2xl">⛩️</span>
-            <div>
-              <div class="text-[9px] text-red-300/70">总部防御</div>
-              <div class="text-base sm:text-xl font-black text-red-400 font-cinzel leading-none" id="enemy-hp">20</div>
+      <!-- 左上角：敌方驭鬼者头像与菱形灵异点数条 -->
+      <div class="col-span-4 sm:col-span-3 hud-corner-card rounded-xl p-2 flex flex-col justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-stone-900 border border-red-800/80 flex items-center justify-center text-base sm:text-xl shrink-0 shadow-inner">
+            👤
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="text-xs sm:text-sm font-bold text-stone-100 truncate" id="enemy-name">敌方首领</div>
+            <div class="text-[10px] sm:text-xs text-stone-300 font-cinzel">
+              灵异 <span id="enemy-mana" class="text-red-300 font-bold">1/1</span> · 复苏 <span id="enemy-resurgence" class="text-red-400">0%</span>
             </div>
           </div>
-          <div class="text-right text-[10px] text-stone-400">
-            <div>手牌: <span id="enemy-hand-count" class="text-stone-200 font-bold">4</span></div>
-            <div>复苏: <span id="enemy-resurgence" class="text-red-400 font-bold">0%</span></div>
-          </div>
         </div>
-        <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden">
-          <div id="enemy-resurgence-bar" class="h-full bg-gradient-to-r from-red-800 to-red-500 transition-all duration-300" style="width: 0%"></div>
+        <!-- 菱形灵异指挥点槽 -->
+        <div id="enemy-mana-diamonds" class="flex items-center gap-1.5 my-1 px-0.5 flex-wrap"></div>
+        <div class="flex items-center justify-between text-[10px] text-stone-400 border-t border-red-950/60 pt-1">
+          <span>手牌: <strong id="enemy-hand-count" class="text-stone-200">4</strong></span>
+          <span>牌库: <strong id="enemy-deck-count" class="text-stone-200">16</strong></span>
         </div>
       </div>
 
-      <!-- 敌方支援阵地 (4个槽位) -->
+      <!-- 敌方支援阵地 (4个槽位) + 敌方总部建筑卡 -->
       <div class="col-span-8 sm:col-span-9 dossier-panel rounded-xl p-1.5 sm:p-2 flex flex-col justify-between">
         <div class="flex justify-between items-center px-1 mb-1">
-          <span class="text-[10px] text-stone-400 tracking-wider">敌方支援阵地 (后排)</span>
-          <span class="text-[10px] text-stone-500" id="turn-indicator">第 1 回合</span>
+          <span class="text-[10px] text-stone-400 tracking-wider">敌方阵地 & 总部建筑</span>
+          <span class="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded bg-black/75 border border-red-900/70 text-red-200" id="turn-indicator">第 1 回合</span>
         </div>
-        <div id="enemy-support-row" class="grid grid-cols-4 gap-1.5 sm:gap-2 flex-1 min-h-[78px] sm:min-h-[96px]">
-          <!-- JS动态渲染4个敌方支援槽 -->
+        <div class="grid grid-cols-5 gap-1.5 sm:gap-2 flex-1 min-h-[78px] sm:min-h-[96px]">
+          <!-- 前2个敌方支援槽 -->
+          <div id="enemy-support-0" class="h-full"></div>
+          <div id="enemy-support-1" class="h-full"></div>
+          <!-- 中央敌方总部建筑卡牌 -->
+          <div id="enemy-hq-box" onclick="handleTargetClick('enemy_hq')"
+               class="hq-card-slot rounded-lg p-1 flex flex-col justify-between cursor-pointer transition select-none">
+            <div class="text-[9px] text-center text-red-300/90 font-bold truncate">敌方总部</div>
+            <div class="flex-1 flex items-center justify-center my-0.5">
+              <!-- SVG 阴森古宅总部建筑图腾 -->
+              <svg class="w-8 h-8 sm:w-11 sm:h-11 text-red-500/85 drop-shadow" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M8 24 L32 10 L56 24" stroke-linecap="round"/>
+                <path d="M14 24 V54 H50 V24"/>
+                <rect x="25" y="34" width="14" height="20" fill="rgba(185,28,28,0.35)"/>
+                <line x1="20" y1="24" x2="20" y2="54"/>
+                <line x1="44" y1="24" x2="44" y2="54"/>
+              </svg>
+            </div>
+            <div class="flex items-center justify-between bg-black/80 rounded px-1 py-0.5 border border-red-900/70">
+              <span class="text-[9px] text-stone-400">总署</span>
+              <span id="enemy-hp" class="badge-hp text-[10px] sm:text-xs font-black px-1.5 rounded text-white font-cinzel">20</span>
+            </div>
+          </div>
+          <!-- 后2个敌方支援槽 -->
+          <div id="enemy-support-2" class="h-full"></div>
+          <div id="enemy-support-3" class="h-full"></div>
         </div>
       </div>
     </div>
 
-    <!-- 2. 正中央：唯一【前线 Frontline】 (4个槽位，双方争夺) -->
-    <div id="frontline-container" class="frontline-zone rounded-xl p-1.5 sm:p-2 flex flex-col justify-between relative">
+    <!-- 2. 正中央：唯一【前线 Frontline】 (上下双排鲜红虚线分割，4个槽位) -->
+    <div id="frontline-container" class="frontline-zone rounded-lg p-1.5 sm:p-2 flex flex-col justify-between relative my-0.5">
       <div class="flex items-center justify-between px-1 mb-1">
         <div class="flex items-center gap-2">
-          <span class="text-xs font-black tracking-widest text-amber-400">⚔️ 中央前线 (FRONTLINE)</span>
-          <span id="frontline-owner-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 border border-stone-600">
+          <span class="text-[11px] sm:text-xs font-black tracking-widest text-red-400">⚔️ 中央前线</span>
+          <span id="frontline-owner-badge" class="text-[10px] px-2 py-0.5 rounded bg-black/75 text-stone-300 border border-red-900/60">
             无人占领
           </span>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="toggleSound()" id="sound-btn" class="text-[11px] px-2 py-0.5 rounded bg-stone-900 border border-stone-700 text-stone-300 hover:border-amber-500">
-            🔊 音效开
+        <div class="flex items-center gap-1.5">
+          <button onclick="toggleSound()" id="sound-btn" class="text-[10px] sm:text-[11px] px-2 py-0.5 rounded bg-black/80 border border-red-950 text-stone-300 hover:border-red-500">
+            🔊 音效
           </button>
-          <button onclick="openInspectModal()" class="text-[11px] px-2 py-0.5 rounded bg-stone-900 border border-stone-700 text-amber-300 hover:border-amber-500">
+          <button onclick="openInspectModal()" class="text-[10px] sm:text-[11px] px-2 py-0.5 rounded bg-black/80 border border-red-950 text-red-300 hover:border-red-500">
             📜 战况日志
           </button>
         </div>
@@ -406,66 +527,86 @@
       </div>
     </div>
 
-    <!-- 3. 底部：我方总部 + 我方支援阵地 (4槽) -->
+    <!-- 3. 底部：左下角我方HUD + 我方支援阵地(含中央我方总部建筑卡) -->
     <div class="grid grid-cols-12 gap-1.5 sm:gap-2 items-stretch">
-      <!-- 我方总部牌匾 -->
-      <div id="player-hq-box"
-           class="col-span-4 sm:col-span-3 hq-plaque-player rounded-xl p-2 flex flex-col justify-between relative">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] sm:text-xs font-bold text-amber-300 truncate" id="player-name">大昌市总部</span>
-          <span class="text-[10px] px-1.5 py-0.2 rounded bg-black/70 text-amber-300 border border-amber-500/60 font-cinzel font-bold" id="player-mana">1/1</span>
-        </div>
-        <div class="flex items-center justify-between my-1">
-          <div class="flex items-center gap-1">
-            <span class="text-lg sm:text-2xl">🛡️</span>
-            <div>
-              <div class="text-[9px] text-amber-300/70">我方防御</div>
-              <div class="text-base sm:text-xl font-black text-amber-400 font-cinzel leading-none" id="player-hp">20</div>
+      <!-- 左下角：我方驭鬼者头像与菱形灵异点数条 -->
+      <div class="col-span-4 sm:col-span-3 hud-corner-card rounded-xl p-2 flex flex-col justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-950/60 border border-red-500/80 flex items-center justify-center text-base sm:text-xl shrink-0">
+            👁️
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="text-xs sm:text-sm font-bold text-stone-100 truncate" id="player-name">大昌市·杨间</div>
+            <div class="text-[10px] sm:text-xs text-stone-300 font-cinzel">
+              灵异 <span id="player-mana" class="text-rose-400 font-bold">1/1</span> · 复苏 <span id="player-resurgence" class="text-red-400 font-bold">0%</span>
             </div>
           </div>
-          <div class="text-right text-[10px] text-stone-300">
-            <div>牌库: <span id="player-deck-count" class="font-bold">18</span></div>
-            <div>复苏: <span id="player-resurgence" class="text-red-400 font-bold">0%</span></div>
-          </div>
         </div>
-        <!-- 厉鬼复苏度警戒条 -->
-        <div class="w-full h-1.5 bg-black/80 rounded-full overflow-hidden" title="厉鬼复苏度：100%将触发厉鬼反噬">
-          <div id="player-resurgence-bar" class="h-full bg-gradient-to-r from-amber-500 via-red-600 to-rose-500 transition-all duration-300" style="width: 0%"></div>
+        <!-- 菱形灵异指挥点槽 -->
+        <div id="player-mana-diamonds" class="flex items-center gap-1.5 my-1 px-0.5 flex-wrap"></div>
+        <!-- 厉鬼复苏度细血条 -->
+        <div>
+          <div class="w-full h-1 bg-black/90 rounded-full overflow-hidden mb-1" title="厉鬼复苏度：100%将触发厉鬼反噬">
+            <div id="player-resurgence-bar" class="h-full bg-gradient-to-r from-red-700 via-rose-500 to-amber-400 transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-stone-400">
+            <span>手牌: <strong id="player-hand-count" class="text-stone-200">4</strong></span>
+            <span>牌库: <strong id="player-deck-count" class="text-stone-200">16</strong></span>
+          </div>
         </div>
       </div>
 
-      <!-- 我方支援阵地 (4个槽位) -->
+      <!-- 我方支援阵地 (4个槽位) + 中央我方总部建筑卡 -->
       <div class="col-span-8 sm:col-span-9 dossier-panel rounded-xl p-1.5 sm:p-2 flex flex-col justify-between">
         <div class="flex justify-between items-center px-1 mb-1">
-          <span class="text-[10px] text-amber-300/80 tracking-wider">我方支援阵地 (部署区)</span>
-          <span id="action-hint" class="text-[10px] text-emerald-400 font-medium truncate max-w-[65%]">
+          <span class="text-[10px] text-red-300/80 tracking-wider">我方支援阵地 & 总部建筑</span>
+          <span id="action-hint" class="text-[10px] text-stone-300 font-medium truncate max-w-[65%]">
             选择手牌部署或点击己方单位行动
           </span>
         </div>
-        <div id="player-support-row" class="grid grid-cols-4 gap-1.5 sm:gap-2 flex-1 min-h-[78px] sm:min-h-[96px]">
-          <!-- JS动态渲染4个我方支援槽 -->
+        <div class="grid grid-cols-5 gap-1.5 sm:gap-2 flex-1 min-h-[78px] sm:min-h-[96px]">
+          <div id="player-support-0" class="h-full"></div>
+          <div id="player-support-1" class="h-full"></div>
+          <!-- 中央我方总部建筑卡牌 -->
+          <div id="player-hq-box" onclick="handlePlayerHqClick()"
+               class="hq-card-slot-player rounded-lg p-1 flex flex-col justify-between cursor-pointer transition select-none">
+            <div class="text-[9px] text-center text-rose-300 font-bold truncate">我方总部</div>
+            <div class="flex-1 flex items-center justify-center my-0.5">
+              <svg class="w-8 h-8 sm:w-11 sm:h-11 text-rose-400/90 drop-shadow" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M8 24 L32 10 L56 24" stroke-linecap="round"/>
+                <path d="M14 24 V54 H50 V24"/>
+                <rect x="25" y="34" width="14" height="20" fill="rgba(225,29,72,0.35)"/>
+                <line x1="20" y1="24" x2="20" y2="54"/>
+                <line x1="44" y1="24" x2="44" y2="54"/>
+              </svg>
+            </div>
+            <div class="flex items-center justify-between bg-black/80 rounded px-1 py-0.5 border border-red-900/70">
+              <span class="text-[9px] text-stone-400">总署</span>
+              <span id="player-hp" class="badge-hp text-[10px] sm:text-xs font-black px-1.5 rounded text-white font-cinzel">20</span>
+            </div>
+          </div>
+          <div id="player-support-2" class="h-full"></div>
+          <div id="player-support-3" class="h-full"></div>
         </div>
       </div>
     </div>
 
-    <!-- 4. 最底部：手牌区与回合控制栏 -->
+    <!-- 4. 最底部：暗红边框手牌扇形/横排区 + 右侧操作按钮 -->
     <div class="dossier-panel rounded-xl p-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-      <!-- 手牌横向滚动容器 -->
-      <div id="player-hand" class="flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-1 min-h-[112px] sm:min-h-[126px]">
+      <div id="player-hand" class="flex-1 flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 px-1 min-h-[114px] sm:min-h-[128px]">
         <!-- JS动态渲染手牌 -->
       </div>
 
-      <!-- 右侧操作按钮组 -->
-      <div class="flex sm:flex-col items-center justify-between sm:justify-center gap-2 shrink-0 border-t sm:border-t-0 sm:border-l border-stone-800 pt-1.5 sm:pt-0 sm:pl-3">
+      <div class="flex sm:flex-col items-center justify-between sm:justify-center gap-2 shrink-0 border-t sm:border-t-0 sm:border-l border-red-950/80 pt-1.5 sm:pt-0 sm:pl-3">
         <button id="btn-end-turn" onclick="endPlayerTurn()"
-                class="flex-1 sm:flex-initial w-full sm:w-28 py-2.5 px-3 rounded-xl font-black text-xs sm:text-sm bg-gradient-to-b from-amber-500 to-amber-700 hover:from-amber-400 hover:to-amber-600 text-stone-950 shadow-lg border border-amber-300 transition active:scale-95">
+                class="flex-1 sm:flex-initial w-full sm:w-28 py-2.5 px-3 rounded-lg font-black text-xs sm:text-sm bg-gradient-to-b from-red-700 to-red-950 hover:from-red-600 hover:to-red-900 text-stone-100 shadow-lg border border-red-500/80 transition active:scale-95">
           结束回合
         </button>
         <div class="flex gap-1.5 w-full sm:w-28">
-          <button onclick="cancelSelection()" class="flex-1 py-1.5 px-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-[11px] text-stone-300 border border-stone-600">
-            取消选中
+          <button onclick="cancelSelection()" class="flex-1 py-1.5 px-2 rounded bg-stone-900 hover:bg-stone-800 text-[11px] text-stone-300 border border-stone-700">
+            取消
           </button>
-          <button onclick="returnToLobby()" class="py-1.5 px-2 rounded-lg bg-red-950/70 hover:bg-red-900 text-[11px] text-red-300 border border-red-800/60" title="退出对局">
+          <button onclick="returnToLobby()" class="py-1.5 px-2 rounded bg-black hover:bg-red-950 text-[11px] text-red-400 border border-red-900/70" title="退出对局">
             撤离
           </button>
         </div>
@@ -532,440 +673,258 @@
     initFirebase();
 
     // =========================================================================
-    // 1. Web Audio API 灵异音效合成器 (无需外部音频URL)
+    // 1. Web Audio API 灵异音效合成器
     // =========================================================================
     const SoundFX = {
-      enabled: true,
       ctx: null,
+      enabled: true,
       init() {
         if (!this.ctx) {
-          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
         }
-        if (this.ctx.state === 'suspended') {
+        if (this.ctx && this.ctx.state === 'suspended') {
           this.ctx.resume();
         }
       },
-      playDeploy() {
+      playTone(freq, type, duration, vol = 0.15, slideTo = null) {
         if (!this.enabled) return;
         this.init();
-        const now = this.ctx.currentTime;
+        if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(140, now);
-        osc.frequency.exponentialRampToValueAtTime(55, now + 0.22);
-        gain.gain.setValueAtTime(0.35, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        if (slideTo) {
+          osc.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime + duration);
+        }
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.25);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      },
+      playDeploy() {
+        this.playTone(180, 'triangle', 0.22, 0.2, 95);
       },
       playAttack() {
-        if (!this.enabled) return;
-        this.init();
-        const now = this.ctx.currentTime;
-        // 沉重撞击 + 撕裂音
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(220, now);
-        osc.frequency.exponentialRampToValueAtTime(38, now + 0.28);
-        gain.gain.setValueAtTime(0.4, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.3);
+        this.playTone(130, 'sawtooth', 0.28, 0.25, 42);
       },
       playGhostDomain() {
-        if (!this.enabled) return;
-        this.init();
-        const now = this.ctx.currentTime;
-        // 诡异高频共鸣 (鬼域展开)
-        [320, 485, 640].forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, now);
-          osc.frequency.linearRampToValueAtTime(freq * 0.82, now + 0.65);
-          gain.gain.setValueAtTime(0.12 / (idx + 1), now);
-          gain.gain.exponentialRampToValueAtTime(0.005, now + 0.68);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.7);
-        });
+        this.playTone(320, 'sine', 0.55, 0.22, 110);
+        setTimeout(() => this.playTone(480, 'triangle', 0.45, 0.12, 190), 90);
       },
       playFuse() {
-        if (!this.enabled) return;
-        this.init();
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(180, now);
-        osc.frequency.exponentialRampToValueAtTime(540, now + 0.45);
-        gain.gain.setValueAtTime(0.28, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.48);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.5);
+        this.playTone(220, 'sine', 0.45, 0.2, 540);
       }
     };
 
     window.toggleSound = () => {
       SoundFX.enabled = !SoundFX.enabled;
-      document.getElementById('sound-btn').textContent = SoundFX.enabled ? '🔊 音效开' : '🔇 音效关';
+      const btn = document.getElementById('sound-btn');
+      if (btn) btn.textContent = SoundFX.enabled ? '🔊 音效' : '🔇 静音';
     };
 
     // =========================================================================
-    // 2. 《神秘复苏》完整卡牌数据库 (严格匹配 KARDS 部署费/行动费 & 灵异机制)
+    // 2. 《神秘复苏》全卡牌与卡组数据库
     // =========================================================================
     const CARD_DB = {
-      // --- 核心驭鬼者单位 ---
-      yang_jian: {
-        id: 'yang_jian',
-        name: '驭鬼者·杨间',
-        type: 'unit',
-        cost: 2,
-        opCost: 1,
-        atk: 2,
-        hp: 4,
+      yangjian: {
+        id: 'yangjian', name: '驭鬼者·杨间', icon: '👁️', type: 'unit',
+        cost: 3, opCost: 1, atk: 2, hp: 4,
         keywords: ['vessel'],
-        icon: '👁️',
-        desc: '【拼图容器】可叠加任意厉鬼拼图，永久继承攻防与词条。每次叠加复苏度+12%。'
+        desc: '【拼图容器】可无限叠加融合其他【拼图】厉鬼卡，永久继承属性与全部词条。'
       },
-      // --- 可叠加的厉鬼拼图单位 ---
       ghost_eye: {
-        id: 'ghost_eye',
-        name: '鬼眼·红光',
-        type: 'unit',
-        cost: 2,
-        opCost: 1,
-        atk: 2,
-        hp: 2,
+        id: 'ghost_eye', name: '鬼眼·红光', icon: '🔴', type: 'unit',
+        cost: 2, opCost: 1, atk: 2, hp: 2,
         keywords: ['domain', 'puzzle'],
-        icon: '🔴',
-        desc: '【鬼域】【拼图】可在支援阵地跨过前线远程打击且不受反击。可叠加至场上单位！'
+        desc: '【鬼域·拼图】支持后排跨前线无伤远程攻击；可叠加至容器单位。'
       },
       headless_shadow: {
-        id: 'headless_shadow',
-        name: '无头鬼影',
-        type: 'unit',
-        cost: 3,
-        opCost: 1,
-        atk: 3,
-        hp: 3,
+        id: 'headless_shadow', name: '无头鬼影', icon: '👤', type: 'unit',
+        cost: 3, opCost: 1, atk: 3, hp: 2,
         keywords: ['blitz', 'puzzle'],
-        icon: '👤',
-        desc: '【袭击】【拼图】部署或移入前线当回合即可攻击。可叠加至场上单位拼接身体！'
+        desc: '【袭击·拼图】部署或推进前线当回合即可攻击；可叠加至容器单位。'
       },
       ghost_hand: {
-        id: 'ghost_hand',
-        name: '压制·鬼手',
-        type: 'unit',
-        cost: 2,
-        opCost: 1,
-        atk: 2,
-        hp: 3,
+        id: 'ghost_hand', name: '压制·鬼手', icon: '🖐️', type: 'unit',
+        cost: 2, opCost: 1, atk: 1, hp: 4,
         keywords: ['guard', 'puzzle'],
-        icon: '🖐️',
-        desc: '【守护】【拼图】在前线时保护相邻单位与总部不被直接攻击。可叠加至场上单位！'
+        desc: '【守护·拼图】在前线保护相邻单位与总部；可叠加至容器单位。'
       },
       ghost_child: {
-        id: 'ghost_child',
-        name: '鬼童·吞噬',
-        type: 'unit',
-        cost: 2,
-        opCost: 1,
-        atk: 2,
-        hp: 2,
+        id: 'ghost_child', name: '鬼童·吞噬', icon: '👶', type: 'unit',
+        cost: 3, opCost: 1, atk: 2, hp: 3,
         keywords: ['blitz', 'puzzle'],
-        icon: '👶',
-        desc: '【袭击】【拼图】部署时使我方复苏度-10%，可叠加至杨间身上化为恐怖拼图！',
+        desc: '【袭击·拼图】进场或叠加时使我方复苏度 -10%。',
+        onDeploy: (state, side) => increaseResurgence(side, -10)
+      },
+      ghost_candle_guard: {
+        id: 'ghost_candle_guard', name: '鬼烛守护者', icon: '🕯️', type: 'unit',
+        cost: 2, opCost: 1, atk: 1, hp: 5,
+        keywords: ['guard'],
+        desc: '【守护】点燃红色鬼烛吸引厉鬼袭击，保护总部与相邻单位。'
+      },
+      starving_ghost: {
+        id: 'starving_ghost', name: 'S级·饿死鬼', icon: '🧟', type: 'unit',
+        cost: 6, opCost: 2, atk: 6, hp: 6,
+        keywords: ['blitz', 'guard'],
+        desc: '【袭击·守护】恐怖的鬼婴源头，进场推高双方 10% 复苏度。',
         onDeploy: (state, side) => {
-          state[side].resurgence = Math.max(0, state[side].resurgence - 10);
-          addLog(`👶 【鬼童】吞噬灵异余波，${side === 'player' ? '我方' : '敌方'}复苏度降低10%！`);
+          increaseResurgence(side, 10);
+          increaseResurgence(side === 'player' ? 'enemy' : 'player', 10);
         }
       },
-      // --- 原著新增角色卡 ---
-      li_jun: {
-        id: 'li_jun',
-        name: '队长·李军',
-        type: 'unit',
-        cost: 4,
-        opCost: 1,
-        atk: 3,
-        hp: 5,
-        keywords: ['guard', 'domain'],
-        icon: '🔥',
-        desc: '【守护】【鬼域】绿色鬼火燃尽万物！进场时对敌方前线全体造成 2 点鬼火伤害。',
+      ghost_scissor_user: {
+        id: 'ghost_scissor_user', name: '朋友圈·方世明', icon: '✂️', type: 'unit',
+        cost: 4, opCost: 1, atk: 4, hp: 3,
+        keywords: ['blitz'],
+        desc: '【袭击】手持鬼剪刀，部署或推进当回合即可发动致命斩击。'
+      },
+      painting_ghost: {
+        id: 'painting_ghost', name: '鬼画·衍生体', icon: '🖼️', type: 'unit',
+        cost: 3, opCost: 1, atk: 2, hp: 3,
+        keywords: ['domain'],
+        desc: '【鬼域】从灰暗油画中走出的厉鬼，可在后排无视前线远程打击。'
+      },
+      lijun_unit: {
+        id: 'lijun_unit', name: '队长·李军', icon: '🔥', type: 'unit',
+        cost: 4, opCost: 1, atk: 3, hp: 5,
+        keywords: ['guard'],
+        desc: '【守护】进场释放鬼火，对敌方前线全体单位造成 1 点灼烧伤害。',
         onDeploy: (state, side) => {
           const opp = side === 'player' ? 'enemy' : 'player';
           if (state.frontlineOwner === opp) {
             state.frontline.forEach((u, i) => {
               if (u) {
-                u.hp -= 2;
+                u.hp -= 1;
                 if (u.hp <= 0) state.frontline[i] = null;
               }
             });
             if (state.frontline.every(u => u === null)) state.frontlineOwner = null;
-            addLog(`🔥 【李军】展开绿色鬼火鬼域，焚烧前线敌军造成 2 点伤害！`);
           }
         }
       },
-      ye_zhen: {
-        id: 'ye_zhen',
-        name: '灵异论坛·叶真',
-        type: 'unit',
-        cost: 5,
-        opCost: 1,
-        atk: 5,
-        hp: 4,
+      yezhen_unit: {
+        id: 'yezhen_unit', name: '灵异论坛·叶真', icon: '🗡️', type: 'unit',
+        cost: 5, opCost: 1, atk: 5, hp: 4,
         keywords: ['blitz'],
-        icon: '🗡️',
-        desc: '【袭击】天下无敌替死鬼！进场获得一次【替死】护盾，抵挡致命伤并恢复至满血。',
-        onDeployCustom: (unit) => {
-          unit.hasSubstitute = true;
-        }
+        desc: '【袭击·替死】自带1层【替死护盾】，首次受到致命伤害时免疫死亡并回满生命！',
+        onDeployCustom: (unit) => { unit.hasSubstitute = true; }
       },
-      tong_qian: {
-        id: 'tong_qian',
-        name: '鬼脸·童倩',
-        type: 'unit',
-        cost: 3,
-        opCost: 1,
-        atk: 2,
-        hp: 4,
+      tongqian_unit: {
+        id: 'tongqian_unit', name: '鬼脸·童倩', icon: '🎭', type: 'unit',
+        cost: 3, opCost: 1, atk: 2, hp: 4,
         keywords: ['domain'],
-        icon: '🎭',
-        desc: '【鬼域】哭脸笑脸双鬼共鸣：进场使所有敌方单位攻击力永久 -1。',
+        desc: '【鬼域】进场发出哭笑鬼脸声波，使敌方所有在场单位攻击力 -1。',
         onDeploy: (state, side) => {
           const opp = side === 'player' ? 'enemy' : 'player';
-          state[opp].support.forEach(u => { if (u) u.atk = Math.max(0, u.atk - 1); });
+          state[opp].support.forEach(u => { if (u && u.atk > 0) u.atk -= 1; });
           if (state.frontlineOwner === opp) {
-            state.frontline.forEach(u => { if (u) u.atk = Math.max(0, u.atk - 1); });
-          }
-          addLog(`🎭 【童倩】发出诡异笑声，敌方全体单位攻击力 -1！`);
-        }
-      },
-      liu_san: {
-        id: 'liu_san',
-        name: '纸人·柳三',
-        type: 'unit',
-        cost: 3,
-        opCost: 1,
-        atk: 2,
-        hp: 3,
-        keywords: ['guard'],
-        icon: '🎎',
-        desc: '【守护】纸人替身：进场在相邻空位召唤一个 2/2 具有【守护】的灵异纸人。',
-        onDeploy: (state, side) => {
-          const emptyIdx = state[side].support.findIndex(s => s === null);
-          if (emptyIdx !== -1) {
-            state[side].support[emptyIdx] = createUnitInstance('paper_clone');
-            addLog(`🎎 【柳三】剪纸成兵，在支援阵地召唤了【灵异纸人】！`);
+            state.frontline.forEach(u => { if (u && u.atk > 0) u.atk -= 1; });
           }
         }
       },
-      paper_clone: {
-        id: 'paper_clone',
-        name: '灵异纸人',
-        type: 'unit',
-        cost: 1,
-        opCost: 1,
-        atk: 2,
-        hp: 2,
-        keywords: ['guard'],
-        icon: '🪆',
-        desc: '【守护】柳三剪出的灵异纸人替身。'
-      },
-      wang_xiaoming: {
-        id: 'wang_xiaoming',
-        name: '教授·王小明',
-        type: 'unit',
-        cost: 3,
-        opCost: 2,
-        atk: 1,
-        hp: 4,
+      liusan_unit: {
+        id: 'liusan_unit', name: '纸人·柳三', icon: '🎎', type: 'unit',
+        cost: 3, opCost: 1, atk: 2, hp: 3,
         keywords: [],
-        icon: '🧪',
-        desc: '【绝密实验】进场抽取 2 张牌，并使双方厉鬼复苏度立即降低 20%。',
+        desc: '进场时在空余支援槽额外召唤 1 个 1/3 【守护】纸人替身。',
+        onDeploy: (state, side) => {
+          const empty = state[side].support.findIndex(s => s === null);
+          if (empty !== -1) {
+            state[side].support[empty] = createUnitInstance('paper_doll');
+          }
+        }
+      },
+      paper_doll: {
+        id: 'paper_doll', name: '柳三·纸人替身', icon: '📜', type: 'unit',
+        cost: 1, opCost: 1, atk: 1, hp: 3,
+        keywords: ['guard'],
+        desc: '【守护】扎纸匠制作的高仿纸人，忠实抵挡敌方攻击。'
+      },
+      wangxiaoming_unit: {
+        id: 'wangxiaoming_unit', name: '教授·王小明', icon: '🧪', type: 'unit',
+        cost: 3, opCost: 1, atk: 1, hp: 4,
+        keywords: [],
+        desc: '顶级智囊：进场抽 2 张牌，并使我方厉鬼复苏度降低 15%。',
         onDeploy: (state, side) => {
           drawCards(side, 2);
-          state[side].resurgence = Math.max(0, state[side].resurgence - 20);
-          addLog(`🧪 【王小明】制定灵异压制方案，抽2张牌并降低20%复苏度！`);
+          increaseResurgence(side, -15);
         }
       },
-      qin_lao: {
-        id: 'qin_lao',
-        name: '民国活人·秦老',
-        type: 'unit',
-        cost: 7,
-        opCost: 2,
-        atk: 6,
-        hp: 8,
-        keywords: ['guard', 'domain', 'blitz'],
-        icon: '👴',
-        desc: '【袭击】【守护】【鬼域】民国时期镇压时代的活人，天克万鬼，进场清零我方复苏度！',
+      qinlao_unit: {
+        id: 'qinlao_unit', name: '民国活人·秦老', icon: '👴', type: 'unit',
+        cost: 7, opCost: 1, atk: 6, hp: 8,
+        keywords: ['blitz', 'guard', 'domain'],
+        desc: '【袭击·守护·鬼域】总部定海神针！进场使我方复苏度清零并恢复总部 4 点防御。',
         onDeploy: (state, side) => {
           state[side].resurgence = 0;
-          addLog(`👴 【秦老】拄拐降临战场，恐怖气息镇压全场，我方复苏度彻底清零！`);
+          state[side].hp = Math.min(25, state[side].hp + 4);
         }
       },
-      painting_ghost: {
-        id: 'painting_ghost',
-        name: '鬼画·衍生体',
-        type: 'unit',
-        cost: 2,
-        opCost: 1,
-        atk: 2,
-        hp: 3,
-        keywords: ['domain'],
-        icon: '🖼️',
-        desc: '【鬼域】从灰暗油画中走出的杀人规律体。'
-      },
-      ghost_candle_keeper: {
-        id: 'ghost_candle_keeper',
-        name: '红色鬼烛守卫',
-        type: 'unit',
-        cost: 2,
-        opCost: 1,
-        atk: 1,
-        hp: 5,
-        keywords: ['guard'],
-        icon: '🕯️',
-        desc: '【守护】高生命灵异防线，在前线阻挡一切近战与总部突袭。'
-      },
-      starving_ghost: {
-        id: 'starving_ghost',
-        name: '饿死鬼·第四阶段',
-        type: 'unit',
-        cost: 5,
-        opCost: 2,
-        atk: 5,
-        hp: 5,
-        keywords: ['blitz', 'guard'],
-        icon: '👹',
-        desc: '【袭击】【守护】恐怖的S级厉鬼，进场即可推进并吞噬前线。'
-      },
-      ghost_scissor_user: {
-        id: 'ghost_scissor_user',
-        name: '朋友圈·方世明',
-        type: 'unit',
-        cost: 4,
-        opCost: 1,
-        atk: 4,
-        hp: 3,
-        keywords: ['blitz', 'domain'],
-        icon: '✂️',
-        desc: '【袭击】【鬼域】手持鬼剪刀，可远程无伤剪断敌方核心单位。'
-      },
-      ghost_bus: {
-        id: 'ghost_bus',
-        name: '灵异公交车',
-        type: 'unit',
-        cost: 4,
-        opCost: 2,
-        atk: 3,
-        hp: 6,
-        keywords: ['guard'],
-        icon: '🚌',
-        desc: '【守护】驶入前线时，压制15%厉鬼复苏度。',
-        onDeploy: (state, side) => {
-          state[side].resurgence = Math.max(0, state[side].resurgence - 15);
-          addLog(`🚌 灵异公交车进场，${side === 'player' ? '我方' : '敌方'}厉鬼复苏度降低15%！`);
-        }
-      },
-
-      // --- 灵异指令卡 (法术牌) ---
       ghost_knock: {
-        id: 'ghost_knock',
-        name: '指令·鬼敲门',
-        type: 'order',
-        cost: 2,
-        resurgenceCost: 12,
-        icon: '🚪',
-        targetType: 'enemy_unit',
-        desc: '【灵异指令】敲响必死之门：直接消灭一个生命值 ≤ 4 的敌方单位。（复苏度+12%）'
+        id: 'ghost_knock', name: '指令·鬼敲门', icon: '🚪', type: 'order',
+        cost: 3, resurgenceCost: 12, targetType: 'enemy_unit',
+        desc: '直接消灭一个生命值 ≤ 4 的敌方单位（复苏度+12%）。'
       },
       gold_container: {
-        id: 'gold_container',
-        name: '指令·黄金容器',
-        type: 'order',
-        cost: 2,
-        resurgenceCost: -25,
-        icon: '📦',
-        targetType: 'any_unit_or_self',
-        desc: '【黄金关押】选择敌方单位使其攻击力归零并冻结1回合；若直接点击我方总部，则大幅降低25%复苏度！'
+        id: 'gold_container', name: '指令·黄金容器', icon: '📦', type: 'order',
+        cost: 2, resurgenceCost: -20, targetType: 'any',
+        desc: '关押敌方单位使其攻归0并冻结；或点击我方总部使复苏度 -20%。'
       },
       human_skin_paper: {
-        id: 'human_skin_paper',
-        name: '指令·人皮纸',
-        type: 'order',
-        cost: 1,
-        resurgenceCost: 18,
-        icon: '📜',
-        targetType: 'none',
-        desc: '【诡异预知】抽取 2 张卡牌，本回合额外获得 +2 灵异指挥点，但代价是复苏度 +18%！'
+        id: 'human_skin_paper', name: '指令·人皮纸', icon: '📃', type: 'order',
+        cost: 1, resurgenceCost: 15, targetType: 'none',
+        desc: '抽 2 张牌并获得 2 点本回合灵异点，但复苏度 +15%。'
       },
       three_layer_domain: {
-        id: 'three_layer_domain',
-        name: '指令·三层鬼域',
-        type: 'order',
-        cost: 3,
-        resurgenceCost: 20,
-        icon: '🩸',
-        targetType: 'none',
-        desc: '【鬼域展开】红光笼罩战场！对所有敌方单位造成 2 点灵异伤害，我方全体单位攻击力 +1。（复苏度+20%）'
+        id: 'three_layer_domain', name: '指令·三层鬼域', icon: '🩸', type: 'order',
+        cost: 4, resurgenceCost: 18, targetType: 'none',
+        desc: '对所有敌方单位造成 2 点伤害，我方全体单位攻击力 +1（复苏度+18%）。'
       },
       crash_balance: {
-        id: 'crash_balance',
-        name: '指令·厉鬼死机',
-        type: 'order',
-        cost: 3,
-        resurgenceCost: -40,
-        icon: '⚖️',
-        targetType: 'none',
-        desc: '【完美死机】厉鬼之间达成恐怖平衡！我方复苏度立即降低 40%，所有己方单位恢复 2 点生命并重置行动状态。'
+        id: 'crash_balance', name: '指令·厉鬼死机', icon: '⚖️', type: 'order',
+        cost: 3, resurgenceCost: -30, targetType: 'none',
+        desc: '复苏度 -30%，我方全体单位恢复 2 点生命并重置本回合行动！'
       }
     };
 
     const DECK_PRESETS = {
       yangjian: [
-        'yang_jian', 'yang_jian',
+        'yangjian', 'yangjian', 'yangjian',
         'ghost_eye', 'ghost_eye', 'ghost_eye',
-        'headless_shadow', 'headless_shadow',
+        'headless_shadow', 'headless_shadow', 'headless_shadow',
         'ghost_hand', 'ghost_hand',
         'ghost_child', 'ghost_child',
-        'wang_xiaoming',
-        'gold_container', 'gold_container',
+        'ghost_candle_guard', 'ghost_candle_guard',
         'human_skin_paper', 'human_skin_paper',
-        'three_layer_domain', 'three_layer_domain',
-        'crash_balance', 'ghost_knock'
+        'gold_container', 'gold_container',
+        'three_layer_domain', 'crash_balance', 'ghost_knock'
       ],
       ghost_tide: [
-        'ghost_candle_keeper', 'ghost_candle_keeper',
-        'liu_san', 'liu_san',
-        'ghost_hand', 'ghost_hand',
-        'ghost_bus', 'ghost_bus',
+        'ghost_candle_guard', 'ghost_candle_guard', 'ghost_candle_guard',
+        'liusan_unit', 'liusan_unit',
+        'tongqian_unit', 'tongqian_unit',
+        'painting_ghost', 'painting_ghost',
+        'ghost_scissor_user', 'ghost_scissor_user',
         'starving_ghost', 'starving_ghost',
-        'tong_qian', 'tong_qian',
         'ghost_knock', 'ghost_knock', 'ghost_knock',
         'gold_container', 'gold_container',
-        'three_layer_domain', 'crash_balance', 'human_skin_paper'
+        'three_layer_domain', 'three_layer_domain',
+        'crash_balance', 'human_skin_paper'
       ],
       hq_captains: [
-        'li_jun', 'li_jun',
-        'ye_zhen', 'ye_zhen',
-        'tong_qian', 'tong_qian',
-        'liu_san', 'liu_san',
-        'wang_xiaoming', 'wang_xiaoming',
-        'qin_lao',
-        'ghost_scissor_user',
-        'ghost_candle_keeper', 'ghost_candle_keeper',
+        'wangxiaoming_unit', 'wangxiaoming_unit',
+        'tongqian_unit', 'tongqian_unit',
+        'liusan_unit', 'liusan_unit',
+        'lijun_unit', 'lijun_unit',
+        'yezhen_unit', 'yezhen_unit',
+        'qinlao_unit',
+        'ghost_candle_guard', 'ghost_candle_guard',
+        'ghost_knock', 'ghost_knock',
         'gold_container', 'gold_container',
         'three_layer_domain', 'three_layer_domain',
         'crash_balance', 'human_skin_paper'
@@ -973,30 +932,32 @@
     };
 
     // =========================================================================
-    // 2.5 9大原著首领配置 (专属总部血量、起始费用与杀人规律)
+    // 2.5 9大原著首领配置 (微调至有挑战性但合理可通关的平衡数值)
     // =========================================================================
     const BOSS_CONFIGS = {
       fangshiming: {
         name: '朋友圈·方世明',
-        hp: 22,
+        hp: 20,
         startMana: 1,
         deck: 'hq_captains',
-        passiveDesc: '首领规律：方世明每回合开始时若支援阵地为空，免费召唤1名【鬼剪刀·方世明】。',
+        passiveDesc: '首领规律：方世明每回合开始时若场上完全无单位，召唤1名【鬼剪刀·方世明】。',
         onTurnStart: (state) => {
           const empty = state.enemy.support.findIndex(s => s === null);
-          if (state.enemy.support.every(s => s === null) && empty !== -1) {
+          const hasAnyUnit = state.enemy.support.some(s => s !== null) || (state.frontlineOwner === 'enemy' && state.frontline.some(s => s !== null));
+          if (!hasAnyUnit && empty !== -1) {
             state.enemy.support[empty] = createUnitInstance('ghost_scissor_user');
-            addLog(`✂️ 【首领规律·方世明】暗中袭杀，免费召唤了【朋友圈·方世明】！`);
+            addLog(`✂️ 【首领规律·方世明】暗中袭杀，召唤了【朋友圈·方世明】！`);
           }
         }
       },
       knocker: {
         name: 'S级·敲门鬼罗文松',
-        hp: 24,
+        hp: 22,
         startMana: 1,
         deck: 'ghost_tide',
-        passiveDesc: '首领规律：每回合敲响死亡之门，对我方生命值最低的单位造成 2 点必死灵异伤害！',
+        passiveDesc: '首领规律：每 2 个回合敲响死亡之门，对我方生命值最低的单位造成 2 点灵异伤害。',
         onTurnStart: (state) => {
+          if (state.turnNumber % 2 !== 0) return;
           const targets = [
             ...state.player.support.map((u, i) => ({ u, zone: 'support', i })),
             ...(state.frontlineOwner === 'player' ? state.frontline.map((u, i) => ({ u, zone: 'frontline', i })) : [])
@@ -1019,63 +980,66 @@
       },
       ghost_sheriff: {
         name: 'S级·鬼差（无解压制）',
-        hp: 26,
-        startMana: 2,
+        hp: 24,
+        startMana: 1,
         deck: 'ghost_tide',
-        passiveDesc: '首领规律：敌方场上每有一个单位，敌方全体单位每回合结束获得 +1/+1 恐怖叠加！',
+        passiveDesc: '首领规律：敌方场上单位大于1个时，敌方前线单位每回合获得 +1/+1 恐怖叠加。',
         onTurnStart: (state) => {
           const allEnemyUnits = [
             ...state.enemy.support,
             ...(state.frontlineOwner === 'enemy' ? state.frontline : [])
           ].filter(u => u !== null);
-          if (allEnemyUnits.length > 0) {
-            allEnemyUnits.forEach(u => { u.atk += 1; u.hp += 1; u.maxHp += 1; });
-            addLog(`🌑 【首领规律·鬼差】重启叠加数量，敌方全体单位获得 +1/+1！`);
+          if (allEnemyUnits.length > 1 && state.frontlineOwner === 'enemy') {
+            state.frontline.forEach(u => { if (u) { u.atk += 1; u.hp += 1; u.maxHp += 1; } });
+            addLog(`🌑 【首领规律·鬼差】重启叠加数量，敌方前线单位获得 +1/+1！`);
           }
         }
       },
       yezhen: {
         name: '大海市·叶真（天下无敌）',
-        hp: 25,
-        startMana: 2,
+        hp: 24,
+        startMana: 1,
         deck: 'hq_captains',
-        passiveDesc: '首领规律：叶真拥有替死鬼，每回合敌方总部恢复 2 点生命，且场上首只单位获得【替死】护盾！',
+        passiveDesc: '首领规律：叶真拥有替死鬼，每回合敌方总部恢复 1 点生命，且每 2 回合为首只单位赋予【替死】护盾。',
         onTurnStart: (state) => {
-          state.enemy.hp = Math.min(25, state.enemy.hp + 2);
-          const firstUnit = state.enemy.support.find(u => u !== null) || (state.frontlineOwner === 'enemy' ? state.frontline.find(u => u !== null) : null);
-          if (firstUnit && !firstUnit.hasSubstitute) {
-            firstUnit.hasSubstitute = true;
-            addLog(`🗡️ 【首领规律·叶真】“我叶某人天下无敌！”总部恢复2血，【${firstUnit.name}】获得替死护盾！`);
+          state.enemy.hp = Math.min(24, state.enemy.hp + 1);
+          if (state.turnNumber % 2 === 0) {
+            const firstUnit = state.enemy.support.find(u => u !== null) || (state.frontlineOwner === 'enemy' ? state.frontline.find(u => u !== null) : null);
+            if (firstUnit && !firstUnit.hasSubstitute) {
+              firstUnit.hasSubstitute = true;
+              addLog(`🗡️ 【首领规律·叶真】“我叶某人天下无敌！”【${firstUnit.name}】获得替死护盾！`);
+            }
           }
         }
       },
       lijun: {
         name: '总部队长·李军（鬼火焚城）',
-        hp: 25,
-        startMana: 2,
+        hp: 24,
+        startMana: 1,
         deck: 'hq_captains',
-        passiveDesc: '首领规律：阴森绿火蔓延，每回合对【中央前线】的我方单位造成 2 点鬼火伤害，并推高我方 8% 复苏度！',
+        passiveDesc: '首领规律：阴森绿火蔓延，每回合对【中央前线】的我方单位造成 1 点鬼火伤害，并推高我方 5% 复苏度。',
         onTurnStart: (state) => {
-          increaseResurgence('player', 8);
+          increaseResurgence('player', 5);
           if (state.frontlineOwner === 'player') {
             state.frontline.forEach((u, i) => {
               if (u) {
-                u.hp -= 2;
+                u.hp -= 1;
                 if (u.hp <= 0) state.frontline[i] = null;
               }
             });
             if (state.frontline.every(u => u === null)) state.frontlineOwner = null;
-            addLog(`🔥 【首领规律·鬼火】绿色鬼火灼烧前线我军造成2点伤害，我方复苏度+8%！`);
+            addLog(`🔥 【首领规律·鬼火】绿色鬼火灼烧前线我军造成1点伤害，我方复苏度+5%！`);
           }
         }
       },
       ghost_painting: {
         name: 'S级档案·鬼画（灰暗世界）',
-        hp: 28,
+        hp: 25,
         startMana: 2,
         deck: 'ghost_tide',
-        passiveDesc: '噩梦规律：每回合自动在敌方空余支援位生成 1 只【鬼画·衍生体(2/3 鬼域)】，无限衍生！',
+        passiveDesc: '噩梦规律：每 2 个回合自动在敌方空余支援位生成 1 只【鬼画·衍生体(2/3 鬼域)】。',
         onTurnStart: (state) => {
+          if (state.turnNumber % 2 !== 0) return;
           const empty = state.enemy.support.findIndex(s => s === null);
           if (empty !== -1) {
             state.enemy.support[empty] = createUnitInstance('painting_ghost');
@@ -1085,27 +1049,28 @@
       },
       ghost_lake: {
         name: 'S级档案·鬼湖（沉没侵蚀）',
-        hp: 30,
+        hp: 26,
         startMana: 2,
         deck: 'ghost_tide',
-        passiveDesc: '噩梦规律：冰冷湖水淹没战场，每回合使我方全体单位攻击力 -1，且我方总部受到 1 点溺水侵蚀！',
+        passiveDesc: '噩梦规律：冰冷湖水淹没战场，每回合使我方支援阵地单位攻击力 -1（前线单位不受影响）。',
         onTurnStart: (state) => {
-          state.player.hp = Math.max(0, state.player.hp - 1);
-          state.player.support.forEach(u => { if (u) u.atk = Math.max(0, u.atk - 1); });
-          if (state.frontlineOwner === 'player') {
-            state.frontline.forEach(u => { if (u) u.atk = Math.max(0, u.atk - 1); });
+          let affected = false;
+          state.player.support.forEach(u => {
+            if (u && u.atk > 0) { u.atk = Math.max(0, u.atk - 1); affected = true; }
+          });
+          if (affected) {
+            addLog(`🌊 【噩梦规律·鬼湖】死水淹没后排，我方支援阵地单位攻击力 -1（推进至前线可避开湖水）！`);
           }
-          addLog(`🌊 【噩梦规律·鬼湖】死水淹没脚踝，我方总部-1血，我方全体单位攻击力 -1！`);
         }
       },
       zhangdong: {
         name: '民国古宅·张洞（抹除）',
-        hp: 30,
-        startMana: 3,
+        hp: 26,
+        startMana: 2,
         deck: 'hq_captains',
-        passiveDesc: '绝密规律：每 2 个回合触发一次【抹除】，直接抹除我方场上攻击力最高的一名单位！',
+        passiveDesc: '绝密规律：每 3 个回合触发一次【抹除】，直接抹除我方场上攻击力最高的一名单位！',
         onTurnStart: (state) => {
-          if (state.turnNumber % 2 === 0) {
+          if (state.turnNumber % 3 === 0) {
             const allPlayer = [
               ...state.player.support.map((u, i) => ({ u, zone: 'support', i })),
               ...(state.frontlineOwner === 'player' ? state.frontline.map((u, i) => ({ u, zone: 'frontline', i })) : [])
@@ -1126,14 +1091,18 @@
       },
       qinlao: {
         name: '民国活人·秦老（时代镇压）',
-        hp: 32,
-        startMana: 3,
+        hp: 28,
+        startMana: 2,
         deck: 'hq_captains',
-        passiveDesc: '绝密规律：天克一切厉鬼！每回合我方复苏度强制 +15%，且敌方手牌每回合额外多抽 1 张！',
+        passiveDesc: '绝密规律：天克一切厉鬼！每回合我方复苏度 +10%，且每 2 回合敌方额外多抽 1 张牌。',
         onTurnStart: (state) => {
-          increaseResurgence('player', 15);
-          drawCards('enemy', 1);
-          addLog(`👴 【绝密规律·秦老】时代压制降临，我方厉鬼复苏度强制 +15%，敌方额外抽牌！`);
+          increaseResurgence('player', 10);
+          if (state.turnNumber % 2 === 0) {
+            drawCards('enemy', 1);
+            addLog(`👴 【绝密规律·秦老】时代压制降临，我方复苏度+10%，敌方额外抽1张牌！`);
+          } else {
+            addLog(`👴 【绝密规律·秦老】威压笼罩，我方厉鬼复苏度 +10%！`);
+          }
         }
       }
     };
@@ -2187,23 +2156,38 @@
     // =========================================================================
     // 8. 界面渲染引擎 (响应式卡牌、徽章、光效、漂浮文字)
     // =========================================================================
+    function renderManaDiamonds(containerId, current, max, sideClass) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      const total = Math.min(8, Math.max(max, current));
+      let html = '';
+      for (let i = 0; i < total; i++) {
+        const filled = i < current ? sideClass : '';
+        html += `<span class="mana-diamond ${filled}"></span>`;
+      }
+      el.innerHTML = html;
+    }
+
     function renderAll() {
       if (!gameState) return;
 
-      // 1. 总部状态更新
+      // 1. 总部状态更新与菱形灵异点数渲染
       document.getElementById('enemy-name').textContent = gameState.enemy.name;
       document.getElementById('enemy-hp').textContent = gameState.enemy.hp;
       document.getElementById('enemy-mana').textContent = `${gameState.enemy.mana}/${gameState.enemy.maxMana}`;
       document.getElementById('enemy-hand-count').textContent = gameState.enemy.hand.length;
+      document.getElementById('enemy-deck-count').textContent = gameState.enemy.deck.length;
       document.getElementById('enemy-resurgence').textContent = `${gameState.enemy.resurgence}%`;
-      document.getElementById('enemy-resurgence-bar').style.width = `${gameState.enemy.resurgence}%`;
+      renderManaDiamonds('enemy-mana-diamonds', gameState.enemy.mana, gameState.enemy.maxMana, 'filled-enemy');
 
       document.getElementById('player-name').textContent = gameState.player.name;
       document.getElementById('player-hp').textContent = gameState.player.hp;
       document.getElementById('player-mana').textContent = `${gameState.player.mana}/${gameState.player.maxMana}`;
+      document.getElementById('player-hand-count').textContent = gameState.player.hand.length;
       document.getElementById('player-deck-count').textContent = gameState.player.deck.length;
       document.getElementById('player-resurgence').textContent = `${gameState.player.resurgence}%`;
       document.getElementById('player-resurgence-bar').style.width = `${gameState.player.resurgence}%`;
+      renderManaDiamonds('player-mana-diamonds', gameState.player.mana, gameState.player.maxMana, 'filled-player');
 
       document.getElementById('turn-indicator').textContent = `第 ${gameState.turnNumber} 回合 · ${isMyTurn() ? '我方行动' : '敌方行动'}`;
       const endBtn = document.getElementById('btn-end-turn');
@@ -2231,14 +2215,14 @@
       if (gameState.frontlineOwner === 'player') {
         flContainer.classList.add('frontline-player-owned');
         flBadge.textContent = '我方已占领前线';
-        flBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-amber-900/70 text-amber-200 border border-amber-500';
+        flBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-red-950/90 text-rose-200 border border-red-500';
       } else if (gameState.frontlineOwner === 'enemy') {
         flContainer.classList.add('frontline-enemy-owned');
         flBadge.textContent = '敌方已占领前线';
-        flBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-red-950/80 text-red-300 border border-red-600';
+        flBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-stone-900 text-red-400 border border-red-800';
       } else {
         flBadge.textContent = '前线无主（可推进）';
-        flBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 border border-stone-600';
+        flBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-black/75 text-stone-300 border border-red-900/60';
       }
 
       // 3. 渲染三排槽位
@@ -2250,45 +2234,49 @@
 
     function renderUnitToken(unit, isSelected, extraClasses = '') {
       const kwBadges = unit.keywords.map(k => {
-        if (k === 'domain') return '<span class="px-1 rounded bg-red-900/90 text-red-200 text-[9px]">鬼域</span>';
-        if (k === 'blitz') return '<span class="px-1 rounded bg-amber-800/90 text-amber-200 text-[9px]">袭击</span>';
-        if (k === 'guard') return '<span class="px-1 rounded bg-emerald-900/90 text-emerald-200 text-[9px]">守护</span>';
-        if (k === 'vessel') return '<span class="px-1 rounded bg-cyan-900/90 text-cyan-200 text-[9px]">容器</span>';
+        if (k === 'domain') return '<span class="px-1 rounded bg-red-950 text-red-300 border border-red-800/70 text-[8px] sm:text-[9px]">鬼域</span>';
+        if (k === 'blitz') return '<span class="px-1 rounded bg-rose-950 text-rose-200 border border-rose-700/70 text-[8px] sm:text-[9px]">袭击</span>';
+        if (k === 'guard') return '<span class="px-1 rounded bg-stone-900 text-amber-200 border border-amber-700/70 text-[8px] sm:text-[9px]">守护</span>';
+        if (k === 'vessel') return '<span class="px-1 rounded bg-cyan-950 text-cyan-200 border border-cyan-700/70 text-[8px] sm:text-[9px]">容器</span>';
         return '';
       }).join('');
 
       const puzzleCount = unit.puzzles && unit.puzzles.length > 0
-        ? `<span class="absolute -top-1.5 right-1 px-1.5 rounded-full bg-cyan-600 text-white text-[9px] font-bold shadow">拼图+${unit.puzzles.length}</span>`
+        ? `<span class="absolute -top-1.5 right-1 px-1.5 rounded-full bg-red-700 border border-red-300 text-white text-[8px] font-bold shadow">拼图+${unit.puzzles.length}</span>`
         : '';
 
-      const readyGlow = unit.canAct && !unit.frozen ? 'ring-1 ring-emerald-400/70' : 'opacity-85';
+      const readyGlow = unit.canAct && !unit.frozen ? 'ring-1 ring-rose-400/80' : 'opacity-85';
       const frozenOverlay = unit.frozen ? '<div class="absolute inset-0 bg-amber-500/20 backdrop-blur-[1px] rounded-lg flex items-center justify-center text-[10px] font-bold text-amber-200">📦关押</div>' : '';
       const subBadge = unit.hasSubstitute ? '<span class="absolute -top-1.5 left-1 px-1 rounded-full bg-amber-500 text-stone-950 text-[8px] font-black shadow">替死</span>' : '';
 
       return `
-        <div class="w-full h-full kards-card rounded-lg p-1.5 flex flex-col justify-between relative ${readyGlow} ${isSelected ? 'selected-card' : ''} ${extraClasses}">
+        <div class="w-full h-full kards-card rounded-lg p-1 flex flex-col justify-between relative ${readyGlow} ${isSelected ? 'selected-card' : ''} ${extraClasses}">
           ${subBadge}
           ${puzzleCount}
           ${frozenOverlay}
           <div class="flex items-center justify-between gap-1">
-            <span class="badge-op text-[9px] sm:text-[10px] px-1 rounded font-cinzel font-bold" title="移动/攻击行动费">⚡${unit.opCost}</span>
-            <span class="text-[10px] sm:text-xs font-bold text-stone-100 truncate flex-1 text-center">${unit.name}</span>
+            <span class="badge-op text-[8px] sm:text-[9px] px-1 rounded font-cinzel font-bold" title="移动/攻击行动费">⚡${unit.opCost}</span>
+            <div class="flex items-center justify-center gap-0.5 flex-wrap">${kwBadges}</div>
           </div>
-          <div class="text-center text-lg sm:text-2xl my-0.5 leading-none">${unit.icon}</div>
-          <div class="flex items-center justify-center gap-0.5 flex-wrap">${kwBadges}</div>
-          <div class="flex items-center justify-between mt-0.5">
-            <span class="badge-atk text-[10px] sm:text-xs font-black px-1.5 rounded text-white font-cinzel">${unit.atk}</span>
-            <span class="badge-hp text-[10px] sm:text-xs font-black px-1.5 rounded text-white font-cinzel">${unit.hp}</span>
+          <div class="card-art-frame rounded my-0.5 py-0.5 flex-1 flex items-center justify-center">
+            <span class="text-xl sm:text-2xl leading-none drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]">${unit.icon}</span>
+          </div>
+          <div class="flex items-center justify-between bg-black/85 rounded px-1 py-0.5 border border-red-950/70 gap-0.5">
+            <span class="badge-atk text-[9px] sm:text-[11px] font-black px-1 rounded text-white font-cinzel">${unit.atk}</span>
+            <span class="text-[9px] sm:text-[10px] font-bold text-stone-100 truncate text-center flex-1">${unit.name.split('·').pop()}</span>
+            <span class="badge-hp text-[9px] sm:text-[11px] font-black px-1 rounded text-white font-cinzel">${unit.hp}</span>
           </div>
         </div>
       `;
     }
 
     function renderEnemySupportRow() {
-      const container = document.getElementById('enemy-support-row');
-      container.innerHTML = gameState.enemy.support.map((unit, idx) => {
+      gameState.enemy.support.forEach((unit, idx) => {
+        const slotEl = document.getElementById(`enemy-support-${idx}`);
+        if (!slotEl) return;
         if (!unit) {
-          return `<div class="board-slot rounded-lg flex items-center justify-center text-[10px] text-stone-600">支援位</div>`;
+          slotEl.innerHTML = `<div class="w-full h-full board-slot rounded-lg flex items-center justify-center text-[10px] text-stone-600">支援位</div>`;
+          return;
         }
         let highlight = '';
         if (isMyTurn() && selection) {
@@ -2298,8 +2286,8 @@
             highlight = 'valid-attack-target';
           }
         }
-        return `<div onclick="handleEnemySupportSlotClick(${idx})" class="h-full cursor-pointer">${renderUnitToken(unit, false, highlight)}</div>`;
-      }).join('');
+        slotEl.innerHTML = `<div onclick="handleEnemySupportSlotClick(${idx})" class="w-full h-full cursor-pointer">${renderUnitToken(unit, false, highlight)}</div>`;
+      });
     }
 
     function renderFrontlineRow() {
@@ -2333,14 +2321,16 @@
     }
 
     function renderPlayerSupportRow() {
-      const container = document.getElementById('player-support-row');
-      container.innerHTML = gameState.player.support.map((unit, idx) => {
-        let slotClass = 'board-slot rounded-lg flex items-center justify-center text-[10px] text-stone-600';
+      gameState.player.support.forEach((unit, idx) => {
+        const slotEl = document.getElementById(`player-support-${idx}`);
+        if (!slotEl) return;
+        let slotClass = 'w-full h-full board-slot rounded-lg flex items-center justify-center text-[10px] text-stone-600';
         if (!unit && isMyTurn() && selection && selection.source === 'hand' && selection.card.type === 'unit') {
           slotClass += ' valid-deploy-slot';
         }
         if (!unit) {
-          return `<div onclick="handlePlayerSupportSlotClick(${idx})" class="${slotClass}">部署槽</div>`;
+          slotEl.innerHTML = `<div onclick="handlePlayerSupportSlotClick(${idx})" class="${slotClass}">部署槽</div>`;
+          return;
         }
 
         const isSelected = selection && selection.source === 'board' && selection.zone === 'support' && selection.index === idx;
@@ -2350,8 +2340,8 @@
             highlight = 'valid-fuse-target';
           }
         }
-        return `<div onclick="handlePlayerSupportSlotClick(${idx})" class="h-full cursor-pointer">${renderUnitToken(unit, isSelected, highlight)}</div>`;
-      }).join('');
+        slotEl.innerHTML = `<div onclick="handlePlayerSupportSlotClick(${idx})" class="w-full h-full cursor-pointer">${renderUnitToken(unit, isSelected, highlight)}</div>`;
+      });
     }
 
     function renderPlayerHand() {
@@ -2368,35 +2358,37 @@
         if (card.type === 'unit') {
           return `
             <div onclick="selectHandCard(${idx})"
-                 class="kards-card w-24 sm:w-28 h-28 sm:h-32 shrink-0 rounded-xl p-1.5 flex flex-col justify-between cursor-pointer relative ${isSelected ? 'selected-card' : ''} ${affordable ? '' : 'opacity-60'}">
+                 class="kards-card w-24 sm:w-28 h-28 sm:h-32 shrink-0 rounded-lg p-1.5 flex flex-col justify-between cursor-pointer relative ${isSelected ? 'selected-card' : ''} ${affordable ? '' : 'opacity-60'}">
               <div class="flex items-center justify-between">
-                <span class="badge-cost w-5 h-5 rounded-full flex items-center justify-center text-xs font-black font-cinzel">${card.cost}</span>
+                <span class="badge-cost w-5 h-5 rounded flex items-center justify-center text-xs font-black font-cinzel">${card.cost}</span>
                 <span class="badge-op text-[9px] px-1 rounded font-cinzel">⚡${card.opCost}</span>
               </div>
-              <div class="text-center">
-                <div class="text-xl sm:text-2xl leading-none">${card.icon}</div>
-                <div class="text-[10px] sm:text-[11px] font-bold text-amber-200 truncate mt-1">${card.name}</div>
+              <div class="card-art-frame rounded my-0.5 py-1 text-center">
+                <div class="text-xl sm:text-2xl leading-none drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">${card.icon}</div>
               </div>
-              <div class="text-[9px] text-stone-400 line-clamp-2 leading-tight text-center">${card.desc}</div>
-              <div class="flex items-center justify-between">
-                <span class="badge-atk text-[10px] font-black px-1.5 rounded text-white font-cinzel">${card.atk}</span>
-                <span class="badge-hp text-[10px] font-black px-1.5 rounded text-white font-cinzel">${card.hp}</span>
+              <div class="text-[9px] text-stone-400 line-clamp-1 leading-tight text-center">${card.desc}</div>
+              <div class="flex items-center justify-between bg-black/85 rounded px-1 py-0.5 border border-red-950/80">
+                <span class="badge-atk text-[10px] font-black px-1 rounded text-white font-cinzel">${card.atk}</span>
+                <span class="text-[10px] font-bold text-stone-100 truncate px-0.5">${card.name.split('·').pop()}</span>
+                <span class="badge-hp text-[10px] font-black px-1 rounded text-white font-cinzel">${card.hp}</span>
               </div>
             </div>
           `;
         } else {
           return `
             <div onclick="selectHandCard(${idx})"
-                 class="kards-card w-24 sm:w-28 h-28 sm:h-32 shrink-0 rounded-xl p-1.5 flex flex-col justify-between cursor-pointer border-red-900/80 relative ${isSelected ? 'selected-card' : ''} ${affordable ? '' : 'opacity-60'}">
+                 class="kards-card w-24 sm:w-28 h-28 sm:h-32 shrink-0 rounded-lg p-1.5 flex flex-col justify-between cursor-pointer border-red-700 relative ${isSelected ? 'selected-card' : ''} ${affordable ? '' : 'opacity-60'}">
               <div class="flex items-center justify-between">
-                <span class="badge-cost w-5 h-5 rounded-full flex items-center justify-center text-xs font-black font-cinzel">${card.cost}</span>
-                <span class="text-[9px] px-1 rounded bg-red-950 text-red-300 border border-red-800">指令</span>
+                <span class="badge-cost w-5 h-5 rounded flex items-center justify-center text-xs font-black font-cinzel">${card.cost}</span>
+                <span class="text-[9px] px-1 rounded bg-red-950 text-red-300 border border-red-700">指令</span>
               </div>
-              <div class="text-center">
+              <div class="card-art-frame rounded my-0.5 py-1 text-center">
                 <div class="text-xl sm:text-2xl leading-none">${card.icon}</div>
-                <div class="text-[10px] sm:text-[11px] font-bold text-red-300 truncate mt-1">${card.name}</div>
               </div>
-              <div class="text-[9px] text-stone-300 line-clamp-3 leading-tight text-center">${card.desc}</div>
+              <div class="text-[9px] text-stone-300 line-clamp-2 leading-tight text-center">${card.desc}</div>
+              <div class="bg-black/85 rounded px-1 py-0.5 border border-red-950/80 text-center">
+                <span class="text-[10px] font-bold text-red-300 truncate block">${card.name.split('·').pop()}</span>
+              </div>
             </div>
           `;
         }
