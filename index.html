@@ -3,860 +3,1357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>神秘复苏：驭鬼者排位与对决大厅</title>
+    <title>神秘复苏：驭鬼者战棋卡牌对决</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --blood-red: #8a0303;
-            --blood-glow: rgba(185, 28, 28, 0.6);
-            --ghost-gold: #b4945a;
-            --dark-abyss: #070709;
+            --blood-red: #991b1b;
+            --blood-glow: rgba(220, 38, 38, 0.55);
+            --gold-seal: #c8a258;
+            --abyss-bg: #070709;
         }
 
         body {
             font-family: 'Noto Serif SC', serif;
-            background-color: var(--dark-abyss);
+            background-color: var(--abyss-bg);
             color: #e4e4e7;
             overflow: hidden;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
             background-image: 
-                radial-gradient(circle at 50% 0%, rgba(138, 3, 3, 0.22) 0%, transparent 65%),
-                radial-gradient(circle at 50% 100%, rgba(15, 15, 18, 0.95) 0%, #030304 100%);
+                radial-gradient(circle at 50% 12%, rgba(153, 27, 27, 0.28) 0%, transparent 58%),
+                radial-gradient(circle at 50% 88%, rgba(200, 162, 88, 0.1) 0%, transparent 55%),
+                linear-gradient(180deg, #0b0b0f 0%, #040406 100%);
         }
 
-        .noise-overlay {
+        /* 胶片颗粒与暗黑边缘压迫感 */
+        .noise-layer {
             position: fixed;
             inset: 0;
             pointer-events: none;
             z-index: 50;
-            opacity: 0.04;
+            opacity: 0.045;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        /* 3x3 Grid Battlefield Slots */
-        .grid-slot {
-            aspect-ratio: 1 / 1;
-            background: linear-gradient(145deg, #121216 0%, #08080a 100%);
-            border: 2px dashed #3f3f46;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            border-radius: 0.5rem;
+        .vignette-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 40;
+            box-shadow: inset 0 0 85px rgba(0, 0, 0, 0.94);
         }
 
-        .grid-slot.highlight {
-            border-color: #ef4444;
-            background: rgba(185, 28, 28, 0.12);
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4), inset 0 0 15px rgba(239, 68, 68, 0.2);
+        /* 教程标准九宫格战棋卡槽 */
+        .board-slot {
+            aspect-ratio: 1 / 1.12;
+            background: linear-gradient(165deg, rgba(24, 24, 29, 0.92) 0%, rgba(9, 9, 12, 0.96) 100%);
+            border: 1px solid rgba(82, 82, 91, 0.6);
+            box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.9);
+            border-radius: 0.55rem;
+            position: relative;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .board-slot::before {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border: 1px solid rgba(200, 162, 88, 0.1);
+            border-radius: 0.42rem;
+            pointer-events: none;
+        }
+
+        /* 可部署高亮 */
+        .board-slot.deploy-ready {
+            border: 1.5px dashed #ef4444;
+            background: radial-gradient(circle at center, rgba(185, 28, 28, 0.25) 0%, rgba(12, 12, 16, 0.96) 100%);
+            cursor: pointer;
+            animation: slotPulse 1.6s infinite ease-in-out;
+        }
+
+        /* 可释放道具/技能目标高亮 */
+        .board-slot.target-ready {
+            border: 1.5px solid #f59e0b;
+            box-shadow: 0 0 18px rgba(245, 158, 11, 0.5);
+            cursor: crosshair;
+        }
+
+        /* 可攻击单位边框 */
+        .board-slot.unit-active {
+            border-color: rgba(245, 158, 11, 0.85);
+            box-shadow: 0 0 14px rgba(245, 158, 11, 0.32);
             cursor: pointer;
         }
 
-        .grid-slot.highlight:hover {
-            transform: scale(1.03);
-            border-color: #f87171;
+        /* 选中查看详情单位 */
+        .board-slot.unit-inspected {
+            border: 2px solid #38bdf8;
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.5);
         }
 
-        .grid-card {
-            background: linear-gradient(145deg, #1c1c21 0%, #0d0d10 100%);
+        @keyframes slotPulse {
+            0%, 100% { box-shadow: inset 0 0 8px rgba(239, 68, 68, 0.2); }
+            50% { box-shadow: inset 0 0 18px rgba(239, 68, 68, 0.55); }
+        }
+
+        /* 底部卡牌样式 */
+        .deck-card {
+            background: linear-gradient(155deg, #1d1d22 0%, #0a0a0d 100%);
             border: 1px solid #52525b;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
-            transition: transform 0.2s ease, border-color 0.2s ease;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.92), inset 0 0 10px rgba(0, 0, 0, 0.85);
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .ghost-card {
-            background: linear-gradient(145deg, #18181b 0%, #0c0c0e 100%);
-            border: 1px solid #3f3f46;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8), inset 0 0 12px rgba(0, 0, 0, 0.9);
-            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .ghost-card::before {
-            content: '';
-            position: absolute;
-            inset: 3px;
-            border: 1px solid rgba(180, 148, 90, 0.25);
-            border-radius: 0.375rem;
-            pointer-events: none;
-        }
-
-        .ghost-card:hover:not(.disabled) {
-            transform: translateY(-10px) scale(1.04);
-            border-color: #dc2626;
-            box-shadow: 0 12px 25px rgba(185, 28, 28, 0.45), inset 0 0 15px rgba(185, 28, 28, 0.2);
+        .deck-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            border-color: #eab308;
             z-index: 30;
         }
 
-        .ghost-card.disabled {
-            opacity: 0.55;
-            filter: grayscale(0.6);
-            cursor: not-allowed;
+        .deck-card.card-selected {
+            transform: translateY(-12px) scale(1.05);
+            border-color: #ef4444;
+            box-shadow: 0 0 22px rgba(239, 68, 68, 0.7);
+            z-index: 35;
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            20% { transform: translate(-6px, 4px) rotate(-1deg); }
-            40% { transform: translate(6px, -4px) rotate(1deg); }
-            60% { transform: translate(-4px, -2px) rotate(-0.5deg); }
-            80% { transform: translate(4px, 2px) rotate(0.5deg); }
+        /* 受击震动动画 */
+        @keyframes shakeUnit {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px) rotate(-1.5deg); }
+            40% { transform: translateX(6px) rotate(1.5deg); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
         }
-        .animate-shake {
-            animation: shake 0.4s ease-in-out;
+        .animate-hit {
+            animation: shakeUnit 0.35s ease-in-out;
         }
 
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(0.8); }
-            50% { opacity: 1; transform: translateY(-25px) scale(1.1); }
-            100% { opacity: 0; transform: translateY(-45px) scale(0.95); }
+        /* 飘字特效 */
+        @keyframes floatPopup {
+            0% { opacity: 1; transform: translateY(0) scale(0.85); }
+            45% { opacity: 1; transform: translateY(-18px) scale(1.15); }
+            100% { opacity: 0; transform: translateY(-38px) scale(0.95); }
         }
-        .floating-text {
+        .float-dmg {
             position: absolute;
+            left: 50%;
+            top: 30%;
+            transform: translateX(-50%);
             pointer-events: none;
             font-weight: 900;
-            text-shadow: 0 2px 8px #000;
-            animation: floatUp 1.2s forwards ease-out;
+            font-size: 0.9rem;
+            text-shadow: 0 2px 6px #000, 0 0 10px rgba(220, 38, 38, 0.9);
+            animation: floatPopup 1.1s forwards ease-out;
             z-index: 45;
+            white-space: nowrap;
         }
 
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #09090b;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #3f3f46;
-            border-radius: 2px;
-        }
-
-        .revival-vignette {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 45;
-            transition: opacity 0.6s ease;
-            opacity: 0;
-        }
-        #fxCanvas {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 38;
-        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #09090b; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }
     </style>
 </head>
-<body id="gameBody" class="h-screen w-screen flex flex-col justify-between relative transition-all duration-700">
-    <div class="noise-overlay"></div>
-    <canvas id="fxCanvas"></canvas>
+<body class="h-screen w-screen flex flex-col justify-between relative">
+    <div class="noise-layer"></div>
+    <div class="vignette-layer"></div>
 
-    <!-- 顶部栏：模式选择与主状态 -->
-    <header class="w-full px-3 pt-2 pb-1 sm:px-6 sm:pt-3 flex flex-col gap-2 z-20 bg-gradient-to-b from-black/95 to-transparent">
-        <div class="flex items-center justify-between max-w-5xl mx-auto w-full">
-            <!-- 左侧：模式与段位标识 -->
-            <div class="flex items-center gap-3">
-                <div class="relative w-12 h-12 rounded-lg border-2 border-amber-600 bg-zinc-950 flex items-center justify-center shadow-[0_0_15px_rgba(217,119,6,0.3)]">
-                    <span id="gameModeIcon" class="text-xl">🔥</span>
-                    <span id="gameModeBadgeText" class="absolute -bottom-1.5 bg-amber-950 text-amber-200 text-[9px] px-1.5 rounded-full border border-amber-700">PVE</span>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h2 id="currentModeTitle" class="text-sm sm:text-base font-bold text-amber-400 tracking-wider">灵异事件·剧情战役</h2>
-                        <span id="playerScoreBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono">排位积分: 1250</span>
-                    </div>
-                    <div class="text-[11px] text-zinc-400 mt-0.5">当前状态：<span id="statusSubtitle" class="text-red-400 font-bold">准备就绪</span></div>
-                </div>
+    <!-- 顶部栏：段位、联机切换与新手教程按钮 -->
+    <header class="w-full px-3 pt-2 pb-1 sm:px-6 flex items-center justify-between z-20 max-w-5xl mx-auto">
+        <div class="flex items-center gap-2">
+            <div class="w-10 h-10 rounded-lg border border-amber-600/80 bg-zinc-950 flex flex-col items-center justify-center shadow-[0_0_15px_rgba(217,119,6,0.25)]">
+                <span id="modeBadge" class="text-xs font-black text-amber-400">PVE</span>
+                <span class="text-[8px] text-zinc-400">九宫战棋</span>
             </div>
+            <div>
+                <div class="flex items-center gap-1.5">
+                    <h1 id="headerTitle" class="text-xs sm:text-sm font-black text-zinc-100 tracking-wider">神秘复苏·驭鬼者对决</h1>
+                    <span id="rankTag" class="text-[10px] px-1.5 py-0.5 rounded bg-amber-950/90 text-amber-300 border border-amber-700/60 font-mono">队长级 · 1580</span>
+                </div>
+                <div id="roomStatusSubtitle" class="text-[10px] text-zinc-400 mt-0.5">对照教程法则：排兵布阵 · 压制复苏 · 穿透扣血</div>
+            </div>
+        </div>
 
-            <!-- 右侧：模式切换按钮与档案 -->
-            <div class="flex items-center gap-2 sm:gap-3">
-                <button onclick="toggleModeSelectModal(true)" class="px-3 py-2 rounded-lg bg-gradient-to-r from-red-900 to-amber-800 hover:from-red-800 hover:to-amber-700 active:scale-95 text-white font-bold text-xs shadow-lg transition">
-                    ⚔️ 模式选择 (PVE/PVP)
-                </button>
-                <button onclick="toggleRulesModal(true)" class="p-2 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-500/60 text-zinc-300 text-xs transition">
-                    规则
-                </button>
-            </div>
+        <div class="flex items-center gap-1.5 sm:gap-2">
+            <button onclick="toggleTutorialModal(true)" class="px-2.5 py-1.5 rounded-lg bg-amber-950/90 hover:bg-amber-900 text-amber-200 text-xs font-bold border border-amber-600/70 shadow transition">
+                📖 新手教程
+            </button>
+            <button onclick="openLobbyModal()" class="px-2.5 py-1.5 sm:px-3.5 rounded-lg bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white text-xs font-bold border border-red-500/60 shadow-lg transition">
+                🌐 联机 / 模式
+            </button>
         </div>
     </header>
 
-    <!-- 中央战场区：3x3 九宫格战场 -->
-    <main class="flex-1 flex flex-col items-center justify-center px-3 relative z-20 max-w-5xl mx-auto w-full my-1">
+    <!-- 中央双九宫格主战场 -->
+    <main class="flex-1 flex flex-col items-center justify-center px-2 sm:px-4 z-20 max-w-4xl mx-auto w-full overflow-hidden my-0.5">
         
-        <!-- 敌方/对手状态简报 -->
-        <div class="w-full flex items-center justify-between mb-1 sm:mb-2 px-1">
+        <!-- 敌方指挥官面板 -->
+        <div class="w-full max-w-xl flex items-center justify-between bg-zinc-950/95 border border-red-950/90 rounded-t-xl px-3 py-1.5">
             <div class="flex items-center gap-2">
-                <span id="opponentNameLabel" class="px-2.5 py-0.5 rounded text-xs font-bold bg-red-950/90 text-red-200 border border-red-800/80 shadow">
-                    对手：敲门鬼·罗文松 (PVE)
+                <div class="w-7 h-7 rounded bg-red-950 border border-red-700 flex items-center justify-center text-xs font-black text-red-300">敌</div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span id="enemyNameText" class="text-xs font-bold text-red-400">敲门鬼·罗文松</span>
+                        <span id="enemyOnlineDot" class="w-2 h-2 rounded-full bg-red-500"></span>
+                    </div>
+                    <div class="text-[10px] text-zinc-400 font-mono flex items-center gap-2">
+                        <span>本体生命: <b id="enemyHpVal" class="text-emerald-400">30</b>/30</span>
+                        <span>复苏度: <b id="enemyRevivalVal" class="text-red-400">10%</b></span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="turnBanner" class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-red-950 text-red-200 border border-red-800">
+                    第 1 夜 · 你的回合
                 </span>
             </div>
-            <div class="flex items-center gap-3 text-xs">
-                <span class="text-zinc-400">对手血量: <span id="enemyHpText" class="text-emerald-400 font-bold font-mono">30/30</span></span>
-                <span class="text-zinc-400">复苏: <span id="enemyRevText" class="text-red-400 font-bold font-mono">15%</span></span>
+        </div>
+
+        <!-- 战场核心：敌方 3x3 + 中央灵异结算条 + 我方 3x3 -->
+        <div class="w-full max-w-xl bg-zinc-950/80 border-x border-zinc-800/90 p-2 sm:p-2.5 flex flex-col gap-1.5 shadow-2xl backdrop-blur-sm">
+            
+            <!-- 敌方 3x3 九宫格 -->
+            <div class="flex items-center justify-between text-[9px] text-zinc-500 px-1">
+                <span>敌方阵地（后排[1-3] · 中排[4-6] · 前排[7-9]）</span>
+                <span class="text-amber-500/80">同列无敌方单位时直接穿透扣血</span>
+            </div>
+            <div id="enemyGridContainer" class="grid grid-cols-3 gap-1.5 sm:gap-2">
+                <!-- 动态生成 9 个格子 -->
+            </div>
+
+            <!-- 中央实时战况与选中单位详情条 -->
+            <div class="my-0.5 px-2.5 py-1 rounded bg-black/90 border border-zinc-800 flex items-center justify-between text-[11px] gap-2">
+                <span id="actionHintText" class="text-amber-300 truncate flex-1">选择下方手牌【驭鬼者】部署到我方九宫格，或使用【灵异道具】</span>
+                <button onclick="toggleLogModal(true)" class="text-zinc-400 hover:text-white underline shrink-0">战报</button>
+            </div>
+
+            <!-- 我方 3x3 九宫格 -->
+            <div id="playerGridContainer" class="grid grid-cols-3 gap-1.5 sm:gap-2">
+                <!-- 动态生成 9 个格子 -->
             </div>
         </div>
 
-        <!-- 3x3 九宫格对决盘 -->
-        <div class="w-full max-w-2xl bg-zinc-950/80 border border-zinc-800 rounded-xl p-3 shadow-2xl backdrop-blur-sm flex flex-col gap-2">
-            <div class="text-[10px] text-zinc-500 text-center tracking-widest uppercase">— 敌方/对手阵地 —</div>
-            <div class="grid grid-cols-3 gap-2" id="enemyGridContainer">
-                <!-- 动态生成敌方3格 -->
+        <!-- 我方指挥官面板与操作区 -->
+        <div class="w-full max-w-xl flex items-center justify-between bg-zinc-950/95 border border-amber-900/70 rounded-b-xl px-3 py-1.5">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded bg-amber-950 border border-amber-600 flex items-center justify-center text-xs font-black text-amber-300">我</div>
+                <div>
+                    <div class="text-xs font-bold text-amber-400" id="playerNameDisplay">总部队长·杨间</div>
+                    <div class="text-[10px] text-zinc-400 font-mono flex items-center gap-2">
+                        <span>本体生命: <b id="playerHpVal" class="text-emerald-400">30</b>/30</span>
+                        <span>复苏度: <b id="playerRevivalVal" class="text-red-400">0%</b></span>
+                    </div>
+                </div>
             </div>
 
-            <div class="relative flex py-1 items-center">
-                <div class="flex-grow border-t border-zinc-800"></div>
-                <span class="flex-shrink mx-4 text-zinc-600 text-[10px]">灵异碰撞交汇区</span>
-                <div class="flex-grow border-t border-zinc-800"></div>
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <!-- 灵异费用显示 -->
+                <div class="px-2 py-1 rounded bg-black border border-amber-700/60 text-xs font-mono">
+                    <span class="text-zinc-400 text-[10px]">灵异点:</span>
+                    <span id="playerEnergyVal" class="text-amber-300 font-black">4/4</span>
+                </div>
+                <!-- 压制复苏按钮 -->
+                <button onclick="suppressMyRevival()" title="消耗2灵异点，降低15%复苏度" class="px-2 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-amber-700/50 text-amber-200 text-[10px] sm:text-xs font-bold transition">
+                    压制(-15%)
+                </button>
+                <!-- 结束回合按钮 -->
+                <button id="endTurnButton" onclick="handleEndTurn()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-red-800 to-red-600 hover:from-red-700 hover:to-red-500 text-white text-xs font-bold shadow transition">
+                    结束回合
+                </button>
             </div>
-
-            <div class="grid grid-cols-3 gap-2" id="playerGridContainer">
-                <!-- 动态生成我方3格角色部署位 -->
-            </div>
-            <div class="text-[10px] text-zinc-500 text-center tracking-widest uppercase">— 我方九宫格（点击手牌后选择空位部署角色） —</div>
-        </div>
-
-        <!-- 战斗简报滚动条 -->
-        <div id="battleLogBar" class="w-full max-w-2xl mt-2 bg-black/80 border border-zinc-800/80 px-3 py-1.5 rounded-lg flex items-center justify-between text-xs">
-            <span id="latestLogText" class="text-amber-200/90 truncate">黑夜降临，大昌市灵异事件开始蔓延...</span>
         </div>
     </main>
 
-    <!-- 底部栏：手牌区与资源 -->
-    <footer class="w-full px-2 pb-2 pt-1 sm:px-6 sm:pb-4 z-20 bg-gradient-to-t from-black via-zinc-950/95 to-transparent">
-        <div class="max-w-4xl mx-auto w-full flex flex-col gap-2">
-            
-            <!-- 手牌容器 -->
-            <div id="playerHandContainer" class="flex items-center justify-start sm:justify-center gap-2 min-h-[160px] sm:min-h-[190px] px-2 overflow-x-auto py-2">
-                <!-- 动态渲染手牌 -->
-            </div>
-
-            <!-- 控制台 -->
-            <div class="flex items-center justify-between bg-zinc-900/95 border border-zinc-800 rounded-xl px-3 py-2 sm:px-4 shadow-lg">
-                <div class="flex items-center gap-3">
-                    <div class="flex flex-col gap-1 w-36 sm:w-48">
-                        <div class="flex items-center gap-1.5 text-[10px] sm:text-xs">
-                            <span class="text-zinc-400 w-7">意识</span>
-                            <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700">
-                                <div id="playerHpBar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 100%"></div>
-                            </div>
-                            <span id="playerHpText" class="text-zinc-100 font-mono w-10 text-right">30/30</span>
-                        </div>
-                        <div class="flex items-center gap-1.5 text-[10px] sm:text-xs">
-                            <span class="text-red-400 w-7">复苏</span>
-                            <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden border border-red-900/60">
-                                <div id="playerRevivalBar" class="revival-bar-fill h-full bg-red-600" style="width: 0%"></div>
-                            </div>
-                            <span id="playerRevivalText" class="text-red-400 font-mono w-10 text-right">0%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2 sm:gap-3">
-                    <div class="flex flex-col items-center justify-center bg-black/80 border border-amber-600/50 rounded-lg px-2.5 py-1">
-                        <span class="text-[9px] sm:text-[10px] text-amber-400/80">灵异力量</span>
-                        <span id="playerEnergyText" class="text-sm sm:text-base font-black text-amber-300 font-mono">3 / 3</span>
-                    </div>
-
-                    <button id="suppressBtn" onclick="useSuppressAbility()" title="消耗2点灵异值，压制体内厉鬼，降低15%复苏度"
-                        class="px-2.5 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 active:scale-95 border border-amber-700/50 text-amber-200 text-xs font-bold transition flex flex-col items-center leading-tight">
-                        <span>压制厉鬼</span>
-                        <span class="text-[9px] text-amber-400/80 font-normal">-15%复苏 (2费)</span>
-                    </button>
-
-                    <button id="endTurnBtn" onclick="endPlayerTurn()"
-                        class="px-4 py-2.5 sm:px-6 sm:py-3 rounded-lg bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 active:scale-95 border border-red-500/50 text-white text-xs sm:text-sm font-bold shadow-lg shadow-red-950/60 transition">
-                        结束回合
-                    </button>
-                </div>
-            </div>
+    <!-- 底部手牌区 -->
+    <footer class="w-full px-2 pb-2 pt-1 z-20 bg-gradient-to-t from-black via-zinc-950/95 to-transparent">
+        <div id="playerHandRow" class="max-w-3xl mx-auto flex items-center justify-center gap-1.5 sm:gap-2.5 min-h-[122px] sm:min-h-[138px] overflow-x-auto py-1">
+            <!-- 动态渲染手牌 -->
         </div>
     </footer>
 
-    <!-- 模式选择弹窗 (PVE关卡 vs PVP随机匹配/房间对决) -->
-    <div id="modeSelectModal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 backdrop-blur-md">
-        <div class="bg-zinc-950 border-2 border-red-900/80 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-5">
+    <!-- 新手图文教程弹窗（完整还原教程核心法则与布阵技巧） -->
+    <div id="tutorialModal" class="fixed inset-0 bg-black/85 z-50 hidden items-center justify-center p-4 backdrop-blur-md">
+        <div class="bg-zinc-950 border-2 border-amber-700/80 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-3.5 max-h-[88vh] overflow-y-auto text-xs sm:text-sm text-zinc-300 leading-relaxed">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-2.5">
+                <h2 class="text-base font-black text-amber-400">📖 《神秘复苏》九宫卡牌对战·新手实战教程</h2>
+                <button onclick="toggleTutorialModal(false)" class="text-zinc-400 hover:text-white px-2 text-lg">✕</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div class="p-3 rounded-xl bg-zinc-900 border border-zinc-800">
+                    <div class="font-bold text-amber-300 mb-1">一、九宫格站位与同列攻防机制</div>
+                    <p class="text-zinc-400">双方各有 <strong>3×3 共 9 个战棋格</strong>（前排承伤、中排辅助、后排输出）。</p>
+                    <ul class="list-disc pl-4 mt-1 space-y-1 text-zinc-300">
+                        <li><strong>优先阻挡</strong>：我方角色发起袭击时，会优先攻击<strong>同一竖列</strong>最靠前的敌方角色。</li>
+                        <li><strong>穿透本体扣血</strong>：当某一竖列<strong>没有任何敌方单位阻挡</strong>时，我方该列角色袭击将<strong>直接穿透打击敌方本体生命</strong>（30点归零即获胜）！</li>
+                    </ul>
+                </div>
+
+                <div class="p-3 rounded-xl bg-zinc-900 border border-red-900/50">
+                    <div class="font-bold text-red-400 mb-1">二、驾驭多只鬼与“厉鬼复苏”铁律</div>
+                    <ul class="list-disc pl-4 space-y-1 text-zinc-300">
+                        <li><strong>复苏度警戒线</strong>：每次部署驭鬼者或动用高危灵异道具，都会增加顶部<strong>【复苏度】</strong>。一旦达到 <strong class="text-red-400">100%</strong>，体内厉鬼彻底失控，<strong>直接判负</strong>！</li>
+                        <li><strong>灵异拼接/装备强化</strong>：对场上已有的驭鬼者使用【无头鬼影】或【特制黄金武器】，可触发<strong>双鬼平衡/灵异强化</strong>，大幅提升攻防并压制复苏度。</li>
+                    </ul>
+                </div>
+
+                <div class="p-3 rounded-xl bg-zinc-900 border border-zinc-800">
+                    <div class="font-bold text-emerald-400 mb-1">三、标准开局三步走（新手速胜公式）</div>
+                    <ol class="list-decimal pl-4 space-y-1 text-zinc-300">
+                        <li><strong>第1步（布阵）</strong>：点击手牌中的【替死鬼·叶真】或【鬼眼·杨间】，部署到我方前排阻挡敌方攻势。</li>
+                        <li><strong>第2步（突袭）</strong>：使用【踩人鬼·贺天雄】（自带突袭，上场当回合即可点击攻击）配合【锈迹棺材钉】秒杀敌方同列前排。</li>
+                        <li><strong>第3步（斩杀）</strong>：清空某一列敌方单位后，点击我方该列角色直接攻击敌方本体，配合【红色鬼烛】控好复苏度即可取胜！</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button onclick="toggleTutorialModal(false)" class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-700 to-red-800 text-white text-xs font-bold shadow">进入灵异战场</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 真人联机与战役模式大厅弹窗 -->
+    <div id="lobbyModal" class="fixed inset-0 bg-black/85 z-50 hidden items-center justify-center p-4 backdrop-blur-md">
+        <div class="bg-zinc-950 border border-amber-700/70 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-                <h3 class="font-bold text-amber-400 text-lg">选择游戏对抗模式</h3>
-                <button onclick="toggleModeSelectModal(false)" class="text-zinc-400 hover:text-white px-2">✕</button>
+                <div>
+                    <h2 class="text-base font-black text-amber-400">🌐 真人云端联机 & PVE 战役选择</h2>
+                    <p class="text-[10px] text-zinc-400 mt-0.5">分享页面给好友，输入相同4位房间号即可实时同步对决</p>
+                </div>
+                <button onclick="closeLobbyModal()" class="text-zinc-400 hover:text-white px-2 text-lg">✕</button>
             </div>
 
-            <!-- PVE 战役模式 -->
+            <div class="bg-zinc-900/90 border border-zinc-800 rounded-xl p-2.5 flex items-center justify-between text-[11px]">
+                <span class="text-zinc-400">你的云端身份ID：</span>
+                <span id="myUserIdText" class="font-mono text-amber-300 select-all">连接中...</span>
+            </div>
+
+            <!-- 真人联机区域 -->
+            <div class="space-y-3 bg-zinc-900/60 border border-red-900/50 rounded-xl p-3.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-red-400">⚔️ 真人实时联机对决（云端同步）</span>
+                    <span id="cloudStatusBadge" class="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60">云端实时通道就绪</span>
+                </div>
+
+                <button id="btnRealMatch" onclick="startRealCloudMatchmaking()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-red-800 to-amber-700 hover:from-red-700 hover:to-amber-600 text-white text-xs sm:text-sm font-bold shadow-lg transition">
+                    🔍 搜寻在线真人玩家匹配
+                </button>
+
+                <div class="pt-1 border-t border-zinc-800/80 space-y-2">
+                    <div class="text-[11px] text-zinc-300 font-bold">好友房间密码对战：</div>
+                    <div class="flex gap-2">
+                        <button onclick="createRealCloudRoom()" class="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-300 text-xs font-bold border border-amber-700/50 shrink-0">
+                            创建房间
+                        </button>
+                        <input id="joinRoomCodeInput" type="text" maxlength="6" placeholder="输入4位房号" class="flex-1 bg-black border border-zinc-700 rounded-lg px-2.5 text-xs text-center text-white font-mono uppercase">
+                        <button onclick="joinRealCloudRoom()" class="px-4 py-2 rounded-lg bg-amber-800 hover:bg-amber-700 text-white text-xs font-bold shrink-0">
+                            加入房间
+                        </button>
+                    </div>
+                    <div id="roomWaitingBanner" class="hidden p-2.5 rounded-lg bg-amber-950/60 border border-amber-600/60 text-xs text-amber-200 flex items-center justify-between">
+                        <span id="roomWaitingText">房间号：----，等待对手加入...</span>
+                        <button onclick="copyRoomCode()" class="px-2 py-0.5 rounded bg-amber-700 text-white text-[10px]">复制房号</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 单人 PVE 关卡 -->
             <div class="space-y-2">
-                <div class="text-xs font-bold text-zinc-400">单人 PVE 灵异战役</div>
+                <div class="text-xs font-bold text-zinc-300">🔥 单人 PVE 灵异关卡（新手实战演练）：</div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <button onclick="startPveStage(0)" class="p-3 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-red-500 text-left transition">
-                        <div class="font-bold text-xs text-red-400">第一夜：敲门鬼</div>
-                        <div class="text-[10px] text-zinc-400 mt-1">A级灵异事件</div>
+                    <button onclick="startPveBattle(0)" class="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-left transition">
+                        <div class="text-xs font-bold text-red-400">第一关·敲门鬼</div>
+                        <div class="text-[10px] text-zinc-400 mt-0.5">新手入门 · 规律试炼</div>
                     </button>
-                    <button onclick="startPveStage(1)" class="p-3 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-red-500 text-left transition">
-                        <div class="font-bold text-xs text-amber-400">第二夜：方世明</div>
-                        <div class="text-[10px] text-zinc-400 mt-1">朋友圈顶尖驭鬼者</div>
+                    <button onclick="startPveBattle(1)" class="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-left transition">
+                        <div class="text-xs font-bold text-amber-400">第二关·方世明</div>
+                        <div class="text-[10px] text-zinc-400 mt-0.5">朋友圈 · 鬼剪刀袭击</div>
                     </button>
-                    <button onclick="startPveStage(2)" class="p-3 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-red-500 text-left transition">
-                        <div class="font-bold text-xs text-purple-400">第三夜：鬼差</div>
-                        <div class="text-[10px] text-zinc-400 mt-1">S级无解恐怖</div>
+                    <button onclick="startPveBattle(2)" class="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-left transition">
+                        <div class="text-xs font-bold text-rose-500">第三关·S级鬼差</div>
+                        <div class="text-[10px] text-zinc-400 mt-0.5">无解压制 · 极限生存</div>
                     </button>
-                </div>
-            </div>
-
-            <!-- PVP 联机对决模式 -->
-            <div class="space-y-3 pt-2 border-t border-zinc-800">
-                <div class="text-xs font-bold text-amber-400">真人 PVP 联机对决（随机匹配 & 房间密码）</div>
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <button onclick="startPvpMatchmaking()" class="flex-1 py-3 rounded-lg bg-red-800 hover:bg-red-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5">
-                        <span>🔍 随机寻找在线对手</span>
-                    </button>
-                    <button onclick="showRoomCreateModal()" class="flex-1 py-3 rounded-lg bg-amber-700 hover:bg-amber-600 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5">
-                        <span>🏠 创建私密房间</span>
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <input id="roomCodeInput" type="text" placeholder="输入房间密码（如 8888）" class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-200 outline-none focus:border-amber-500">
-                    <button onclick="joinRoomByCode()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-amber-300 font-bold text-xs rounded-lg border border-amber-700/50">加入房间</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 创建房间弹窗 -->
-    <div id="roomCreateModal" class="fixed inset-0 bg-black/9ow z-50 hidden items-center justify-center p-4 backdrop-blur-md">
-        <div class="bg-zinc-950 border-2 border-amber-800/80 rounded-2xl w-full max-w-sm p-5 text-center shadow-2xl space-y-4">
-            <h3 class="text-lg font-bold text-amber-400">已创建专属灵异房间</h3>
-            <p class="text-xs text-zinc-300">房间唯一识别码：<span id="createdRoomCode" class="text-red-400 font-mono font-bold text-base bg-zinc-900 px-2 py-1 rounded border border-zinc-700"></span></p>
-            <p class="text-[11px] text-zinc-400">将房间码分享给好友，或者点击下方模拟好友加入并开始对决！</p>
-            <div class="flex gap-2 justify-center pt-2">
-                <button onclick="simulateFriendJoin()" class="px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold transition">模拟好友加入并开战</button>
-                <button onclick="closeRoomCreateModal()" class="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs">取消</button>
+    <!-- 战报记录弹窗 -->
+    <div id="logModal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-md max-h-[70vh] flex flex-col">
+            <div class="p-3 border-b border-zinc-800 flex justify-between items-center">
+                <span class="text-xs font-bold text-amber-400">灵异事件完整战报</span>
+                <button onclick="toggleLogModal(false)" class="text-zinc-400 hover:text-white">✕</button>
             </div>
-        </div>
-    </div>
-
-    <!-- 规则说明弹窗 -->
-    <div id="rulesModal" class="fixed inset-0 bg-black/80 z-40 hidden items-center justify-center p-4 backdrop-blur-xs">
-        <div class="bg-zinc-900 border border-amber-800/60 rounded-xl w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl">
-            <div class="p-4 border-b border-zinc-800 flex justify-between items-center">
-                <h3 class="font-bold text-amber-400 text-base">《神秘复苏》游戏规则说明</h3>
-                <button onclick="toggleRulesModal(false)" class="text-zinc-400 hover:text-white px-2">✕</button>
-            </div>
-            <div class="p-4 overflow-y-auto space-y-3 text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                <div class="p-2.5 rounded bg-zinc-800/70 border border-zinc-700">
-                    <p class="font-bold text-amber-400 mb-1">1. PVE 剧情战役模式</p>
-                    <p>挑战敲门鬼、方世明、鬼差等原著经典恐怖，体验深度厉鬼复苏机制。</p>
-                </div>
-                <div class="p-2.5 rounded bg-zinc-800/70 border border-zinc-700">
-                    <p class="font-bold text-amber-400 mb-1">2. PVP 联机与房间对决</p>
-                    <p>支持随机匹配全网玩家，或通过创建/输入房间密码与好友进行实时九宫格驭鬼者对决！</p>
-                </div>
-            </div>
-            <div class="p-3 border-t border-zinc-800 flex justify-end">
-                <button onclick="toggleRulesModal(false)" class="px-4 py-1.5 rounded bg-red-800 hover:bg-red-700 text-white text-xs font-bold">了解</button>
-            </div>
+            <div id="logListBox" class="p-3 overflow-y-auto space-y-1.5 text-xs font-mono text-zinc-300"></div>
         </div>
     </div>
 
     <!-- 结算弹窗 -->
-    <div id="gameOverModal" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center p-4 backdrop-blur-md">
-        <div class="bg-zinc-950 border-2 border-red-900/80 rounded-2xl w-full max-w-md p-6 text-center shadow-2xl space-y-4">
-            <div id="endTitle" class="text-2xl sm:text-3xl font-black tracking-widest text-red-500">对局结算</div>
-            <p id="endDesc" class="text-xs sm:text-sm text-zinc-300 leading-relaxed">对局结束...</p>
-            <div class="pt-2 flex justify-center">
-                <button onclick="closeGameOverModal()" class="px-6 py-2.5 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-bold transition">
-                    返回模式选择
-                </button>
+    <div id="endModal" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center p-4 backdrop-blur-md">
+        <div class="bg-zinc-950 border-2 border-red-900 rounded-2xl w-full max-w-sm p-6 text-center space-y-4 shadow-2xl">
+            <div id="endResultTitle" class="text-2xl font-black text-red-500">对局结束</div>
+            <p id="endResultDesc" class="text-xs text-zinc-300 leading-relaxed"></p>
+            <div class="flex gap-2">
+                <button onclick="restartCurrentPve()" class="flex-1 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-amber-300 text-xs font-bold border border-amber-700/50">再来一局</button>
+                <button onclick="closeEndModalAndOpenLobby()" class="flex-1 py-2.5 rounded-xl bg-red-800 hover:bg-red-700 text-white text-xs font-bold">返回大厅</button>
             </div>
         </div>
     </div>
 
-    <script>
-        const FXEngine = {
-            canvas: null, ctx: null, particles: [], beams: [],
-            init() {
-                this.canvas = document.getElementById('fxCanvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.resize();
-                window.addEventListener('resize', () => this.resize());
-                for (let i = 0; i < 30; i++) this.particles.push(this.createParticle());
-                this.loop();
-            },
-            resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; },
-            createParticle() {
-                return {
-                    x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
-                    vx: (Math.random() - 0.5) * 0.5, vy: -0.2 - Math.random() * 0.6,
-                    size: 1 + Math.random() * 2, alpha: 0.1 + Math.random() * 0.4,
-                    color: Math.random() < 0.3 ? '220, 38, 38' : '161, 161, 170'
-                };
-            },
-            spawnBeam(fromId, toId, color = '#ef4444') {
-                const f = document.getElementById(fromId), t = document.getElementById(toId);
-                if (!f || !t) return;
-                const r1 = f.getBoundingClientRect(), r2 = t.getBoundingClientRect();
-                this.beams.push({
-                    x1: r1.left + r1.width/2, y1: r1.top + r1.height/2,
-                    x2: r2.left + r2.width/2, y2: r2.top + r2.height/2,
-                    color, life: 1.0
+    <!-- Firebase 实时云端联机引擎 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'shenmi-fusu-pvp';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let roomUnsubscribe = null;
+        let currentRoomCode = null;
+        let myRoleInRoom = null;
+
+        async function initCloudAuth() {
+            if (!firebaseConfig) {
+                document.getElementById('myUserIdText').textContent = '本地离线模式';
+                document.getElementById('cloudStatusBadge').textContent = '仅本地PVE';
+                return;
+            }
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('myUserIdText').textContent = user.uid;
+                    }
                 });
-            },
-            loop() {
-                const ctx = this.ctx;
-                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                for (let i = this.particles.length - 1; i >= 0; i--) {
-                    const p = this.particles[i];
-                    p.x += p.vx; p.y += p.vy;
-                    if (p.y < -10) p.y = this.canvas.height + 10;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(${p.color}, ${p.alpha})`; ctx.fill();
-                }
-                for (let i = this.beams.length - 1; i >= 0; i--) {
-                    const b = this.beams[i];
-                    b.life -= 0.05;
-                    if (b.life <= 0) { this.beams.splice(i, 1); continue; }
-                    ctx.save(); ctx.globalAlpha = b.life; ctx.strokeStyle = b.color; ctx.lineWidth = 6 * b.life;
-                    ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.stroke();
-                    ctx.restore();
-                }
-                requestAnimationFrame(() => this.loop());
+            } catch (err) {
+                console.error("Cloud init error:", err);
+                document.getElementById('myUserIdText').textContent = '连接受限';
             }
-        };
-
-        const SoundFX = {
-            ctx: null,
-            init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
-            play(freq, type, dur, vol = 0.15) {
-                try {
-                    this.init();
-                    const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
-                    osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
-                    osc.connect(gain); gain.connect(this.ctx.destination);
-                    osc.start(); osc.stop(this.ctx.currentTime + dur);
-                } catch(e) {}
-            },
-            card() { this.play(240, 'triangle', 0.2); },
-            attack() { this.play(110, 'sawtooth', 0.4); },
-            win() { this.play(440, 'sine', 0.6); }
-        };
-
-        const MASTER_CARD_POOL = [
-            {
-                id: 'yang_jian', name: '杨间 (鬼眼之主)', type: 'character', cost: 2, revival: 12, hp: 16, atk: 7, tag: '队长级', color: 'text-red-400',
-                desc: '开启鬼眼释放猩红红光，对敌方造成 7 点强力灵异打击。', icon: '👁️'
-            },
-            {
-                id: 'li_jun', name: '李军 (民国总部队长)', type: 'character', cost: 3, revival: 18, hp: 22, atk: 9, tag: '总部队长', color: 'text-amber-400',
-                desc: '顶尖驭鬼者，拥有极高的生命与鬼域压制能力，攻击造成 9 点伤害。', icon: '🔥'
-            },
-            {
-                id: 'wei_tuan', name: '卫景 (鬼差驾驭者)', type: 'character', cost: 3, revival: 20, hp: 25, atk: 8, tag: '总部队长', color: 'text-purple-400',
-                desc: '完美的厉鬼复苏平衡体，压制力极强，对敌人造成 8 点意识伤害。', icon: '👤'
-            },
-            {
-                id: 'cao_yang', name: '曹洋 (灵异民国)', type: 'character', cost: 2, revival: 14, hp: 15, atk: 8, tag: '队长级', color: 'text-cyan-400',
-                desc: '驾驭灵异驾驭风与水，造成 8 点迅猛袭击。', icon: '🌊'
-            },
-            {
-                id: 'gold_gun', name: '黄金手枪 (功能武器)', type: 'weapon', cost: 1, revival: -5, damage: 6, tag: '黄金武器', color: 'text-amber-300',
-                desc: '特制黄金子弹，直接对敌方本体造成 6 点穿透伤害，附带 -5% 复苏。', icon: '🔫'
-            },
-            {
-                id: 'rusty_cleaver', name: '诡异柴刀 (媒介武器)', type: 'weapon', cost: 2, revival: 15, damage: 12, tag: '恐怖媒介', color: 'text-red-500',
-                desc: '无视防御媒介肢解！对敌方本体造成 12 点毁灭性伤害。', icon: '🪓'
-            },
-            {
-                id: 'gold_container', name: '黄金容器 (灵异道具)', type: 'weapon', cost: 1, revival: -20, heal: 6, tag: '收容道具', color: 'text-yellow-400',
-                desc: '彻底隔绝灵异辐射。恢复 6 点意识，并大幅降低 20% 厉鬼复苏。', icon: '📦'
-            }
-        ];
-
-        const PVE_STAGES = [
-            { name: '敲门鬼·罗文松', rank: 'A级灵异', hp: 30, revival: 15 },
-            { name: '朋友圈·方世明', rank: '顶尖驭鬼者', hp: 35, revival: 10 },
-            { name: '鬼差·无解压制', rank: 'S级灵异', hp: 45, revival: 5 }
-        ];
-
-        let state = {
-            mode: 'pve', // 'pve', 'pvp_match', 'pvp_room'
-            pveIndex: 0,
-            roomCode: '',
-            score: 1250,
-            turn: 1,
-            isPlayerTurn: true,
-            gameOver: false,
-            playerHp: 30,
-            playerMaxHp: 30,
-            playerRevival: 0,
-            playerEnergy: 3,
-            playerMaxEnergy: 3,
-            opponentName: '敲门鬼·罗文松',
-            opponentHp: 30,
-            opponentMaxHp: 30,
-            opponentRevival: 15,
-            playerGrid: [null, null, null],
-            opponentGrid: [null, null, null],
-            hand: [],
-            deck: [],
-            selectedCardUid: null
-        };
-
-        function startPveStage(idx) {
-            state.mode = 'pve';
-            state.pveIndex = idx;
-            const stage = PVE_STAGES[idx];
-            state.opponentName = stage.name;
-            state.opponentMaxHp = stage.hp;
-            state.opponentHp = stage.hp;
-            state.opponentRevival = stage.revival;
-            initNewBattle();
-            toggleModeSelectModal(false);
-            addLog(`【PVE战役】进入灵异之地：${stage.name} (${stage.rank})`);
         }
 
-        function startPvpMatchmaking() {
-            state.mode = 'pvp_match';
-            state.opponentName = '全网随机驭鬼者 (匹配中...)';
-            toggleModeSelectModal(false);
-            document.getElementById('statusSubtitle').textContent = '正在跨服匹配真人玩家...';
-            addLog('正在进行排位赛跨服随机匹配对手...');
-
-            setTimeout(() => {
-                const opponents = ['大京市·叶真', '朋友圈·方世明', '总部队长·李军', '王小明团队代理人'];
-                state.opponentName = opponents[Math.floor(Math.random() * opponents.length)];
-                state.opponentMaxHp = 30;
-                state.opponentHp = 30;
-                state.opponentRevival = 0;
-                document.getElementById('statusSubtitle').textContent = 'PVP对局进行中';
-                initNewBattle();
-                addLog(`【PVP匹配成功】已匹配到对手：${state.opponentName}，对决开始！`);
-            }, 1600);
-        }
-
-        function showRoomCreateModal() {
-            const code = Math.floor(1000 + Math.random() * 9000).toString();
-            state.roomCode = code;
-            document.getElementById('createdRoomCode').textContent = code;
-            document.getElementById('roomCreateModal').classList.remove('hidden');
-            document.getElementById('roomCreateModal').classList.add('flex');
-        }
-
-        function closeRoomCreateModal() {
-            document.getElementById('roomCreateModal').classList.add('hidden');
-            document.getElementById('roomCreateModal').classList.remove('flex');
-        }
-
-        function simulateFriendJoin() {
-            closeRoomCreateModal();
-            toggleModeSelectModal(false);
-            state.mode = 'pvp_room';
-            state.opponentName = '房间好友 (房客驭鬼者)';
-            state.opponentMaxHp = 30;
-            state.opponentHp = 30;
-            state.opponentRevival = 0;
-            document.getElementById('statusSubtitle').textContent = `房间 [${state.roomCode}] 对决中`;
-            initNewBattle();
-            addLog(`【私密房间】好友已通过房间码 [${state.roomCode}] 加入，对决正式开始！`);
-        }
-
-        function joinRoomByCode() {
-            const code = document.getElementById('roomCodeInput').value.trim();
-            if (!code) {
-                addLog('请输入有效的 4 位房间密码！');
+        window.createRealCloudRoom = async function() {
+            if (!db || !currentUser) {
+                showHint("云端未就绪，请稍候重试！");
                 return;
             }
-            toggleModeSelectModal(false);
-            state.mode = 'pvp_room';
-            state.roomCode = code;
-            state.opponentName = '私密房间房主';
-            state.opponentMaxHp = 30;
-            state.opponentHp = 30;
-            state.opponentRevival = 0;
-            document.getElementById('statusSubtitle').textContent = `已加入房间 [${code}]`;
-            initNewBattle();
-            addLog(`【私密房间】成功加入房间 [${code}]，与房主开始对抗！`);
-        }
+            const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+            currentRoomCode = code;
+            myRoleInRoom = 'host';
 
-        function initNewBattle() {
-            state.turn = 1;
-            state.isPlayerTurn = true;
-            state.gameOver = false;
-            state.playerHp = 30;
-            state.playerRevival = 0;
-            state.playerEnergy = 3;
-            state.playerGrid = [null, null, null];
-            state.opponentGrid = [null, null, null];
-            state.deck = buildDeck();
-            state.hand = [];
-            drawCards(4);
-            updateUI();
-            renderGrids();
-        }
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'pvp_rooms', code);
+            const initialRoomData = {
+                code: code,
+                status: 'waiting',
+                hostId: currentUser.uid,
+                hostName: '房主·总部队长',
+                guestId: null,
+                guestName: null,
+                turnOwner: 'host',
+                turnCount: 1,
+                hostHp: 30,
+                hostRevival: 0,
+                hostGrid: JSON.stringify(createEmptyGrid()),
+                guestHp: 30,
+                guestRevival: 0,
+                guestGrid: JSON.stringify(createEmptyGrid()),
+                lastLog: `房间 ${code} 已创建，等待对手加入...`,
+                updatedAt: Date.now()
+            };
 
-        function buildDeck() {
-            let d = [];
-            MASTER_CARD_POOL.forEach(c => {
-                d.push({ ...c, uid: Math.random().toString(36).substr(2, 9) });
-                d.push({ ...c, uid: Math.random().toString(36).substr(2, 9) });
+            await setDoc(roomRef, initialRoomData);
+            const banner = document.getElementById('roomWaitingBanner');
+            banner.classList.remove('hidden');
+            document.getElementById('roomWaitingText').textContent = `房间号：【${code}】等待真人玩家加入...`;
+            listenToRoom(code);
+        };
+
+        window.joinRealCloudRoom = async function() {
+            if (!db || !currentUser) return;
+            const input = document.getElementById('joinRoomCodeInput').value.trim().toUpperCase();
+            if (input.length < 4) {
+                showHint("请输入完整的4位房间号！");
+                return;
+            }
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'pvp_rooms', input);
+            const snap = await getDoc(roomRef);
+            if (!snap.exists()) {
+                showHint("房间不存在或已解散！");
+                return;
+            }
+            const data = snap.data();
+            if (data.status !== 'waiting' && data.guestId !== currentUser.uid && data.hostId !== currentUser.uid) {
+                showHint("该房间已满员正在对决中！");
+                return;
+            }
+
+            currentRoomCode = input;
+            myRoleInRoom = (data.hostId === currentUser.uid) ? 'host' : 'guest';
+
+            if (myRoleInRoom === 'guest') {
+                await updateDoc(roomRef, {
+                    guestId: currentUser.uid,
+                    guestName: '挑战者·驭鬼者',
+                    status: 'playing',
+                    lastLog: '挑战者已进入灵异之地，真人对决正式开始！',
+                    updatedAt: Date.now()
+                });
+            }
+            closeLobbyModal();
+            listenToRoom(input);
+        };
+
+        window.startRealCloudMatchmaking = async function() {
+            if (!db || !currentUser) {
+                showHint("云端连接中，请稍候...");
+                return;
+            }
+            const btn = document.getElementById('btnRealMatch');
+            btn.textContent = "⏳ 正在检索在线等待的真人房间...";
+            
+            const roomsCol = collection(db, 'artifacts', appId, 'public', 'data', 'pvp_rooms');
+            const snapshot = await getDocs(roomsCol);
+            let foundCode = null;
+
+            snapshot.forEach(docSnap => {
+                const r = docSnap.data();
+                if (r.status === 'waiting' && r.hostId !== currentUser.uid && (Date.now() - r.updatedAt < 300000)) {
+                    foundCode = r.code;
+                }
             });
-            return d.sort(() => Math.random() - 0.5);
+
+            btn.textContent = "🔍 搜寻在线真人玩家匹配";
+            if (foundCode) {
+                document.getElementById('joinRoomCodeInput').value = foundCode;
+                await window.joinRealCloudRoom();
+            } else {
+                await window.createRealCloudRoom();
+                showHint("当前暂无空闲房间，已为你自动创建公开房间，等待另一位玩家进入！");
+            }
+        };
+
+        function listenToRoom(code) {
+            if (roomUnsubscribe) roomUnsubscribe();
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'pvp_rooms', code);
+
+            roomUnsubscribe = onSnapshot(roomRef, (docSnap) => {
+                if (!docSnap.exists()) return;
+                const data = docSnap.data();
+
+                if (data.status === 'playing') {
+                    closeLobbyModal();
+                    syncCloudStateToLocal(data);
+                }
+            }, (err) => {
+                console.error("Room sync error:", err);
+            });
         }
 
-        function drawCards(count) {
+        function syncCloudStateToLocal(data) {
+            game.mode = 'pvp_cloud';
+            game.roomCode = data.code;
+            game.myRole = myRoleInRoom;
+            game.turn = data.turnCount;
+            const wasMyTurn = game.isMyTurn;
+            game.isMyTurn = (data.turnOwner === myRoleInRoom);
+
+            // 轮到我方新回合时补充灵异点、刷新单位行动状态并抽牌
+            if (!wasMyTurn && game.isMyTurn) {
+                game.player.maxEnergy = Math.min(6, 3 + Math.floor(game.turn / 2));
+                game.player.energy = game.player.maxEnergy;
+                game.player.grid.forEach(u => { if (u) u.canAttack = true; });
+                drawHandCards(2);
+            }
+
+            const isHost = (myRoleInRoom === 'host');
+            game.player.hp = isHost ? data.hostHp : data.guestHp;
+            game.player.revival = isHost ? data.hostRevival : data.guestRevival;
+            game.player.grid = JSON.parse(isHost ? data.hostGrid : data.guestGrid);
+
+            game.enemy.name = isHost ? (data.guestName || '在线驭鬼者') : (data.hostName || '房主驭鬼者');
+            game.enemy.hp = isHost ? data.guestHp : data.hostHp;
+            game.enemy.revival = isHost ? data.guestRevival : data.hostRevival;
+            game.enemy.grid = JSON.parse(isHost ? data.guestGrid : data.hostGrid);
+
+            document.getElementById('modeBadge').textContent = 'PVP';
+            document.getElementById('headerTitle').textContent = `真人联机房间 [${data.code}]`;
+            document.getElementById('roomStatusSubtitle').textContent = `你是：${isHost ? '先手房主' : '后手挑战者'} · 实时云端同步`;
+            document.getElementById('enemyOnlineDot').className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+
+            if (data.lastLog) {
+                addBattleLog(data.lastLog);
+            }
+
+            checkWinLoss();
+            renderAll();
+        }
+
+        window.pushCloudRoomUpdate = async function(logMsg, endTurn = false) {
+            if (game.mode !== 'pvp_cloud' || !db || !currentRoomCode) return;
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'pvp_rooms', currentRoomCode);
+            const isHost = (myRoleInRoom === 'host');
+
+            const nextTurnOwner = endTurn ? (isHost ? 'guest' : 'host') : myRoleInRoom;
+            const nextTurnCount = (endTurn && !isHost) ? game.turn + 1 : game.turn;
+
+            const payload = {
+                turnOwner: nextTurnOwner,
+                turnCount: nextTurnCount,
+                lastLog: logMsg,
+                updatedAt: Date.now()
+            };
+
+            if (isHost) {
+                payload.hostHp = game.player.hp;
+                payload.hostRevival = game.player.revival;
+                payload.hostGrid = JSON.stringify(game.player.grid);
+                payload.guestHp = game.enemy.hp;
+                payload.guestRevival = game.enemy.revival;
+                payload.guestGrid = JSON.stringify(game.enemy.grid);
+            } else {
+                payload.guestHp = game.player.hp;
+                payload.guestRevival = game.player.revival;
+                payload.guestGrid = JSON.stringify(game.player.grid);
+                payload.hostHp = game.enemy.hp;
+                payload.hostRevival = game.enemy.revival;
+                payload.hostGrid = JSON.stringify(game.enemy.grid);
+            }
+
+            await updateDoc(roomRef, payload);
+        };
+
+        window.copyRoomCode = function() {
+            if (!currentRoomCode) return;
+            const temp = document.createElement('input');
+            temp.value = currentRoomCode;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            showHint(`房间号 ${currentRoomCode} 已复制！`);
+        };
+
+        initCloudAuth();
+    </script>
+
+    <!-- 核心九宫格游戏逻辑与 SVG 立绘 -->
+    <script>
+        /**
+         * 1. 原著驭鬼者角色卡池（含独立技能标签与矢量立绘）
+         */
+        const CHARACTERS = [
+            {
+                id: 'yang_jian',
+                cardType: 'unit',
+                name: '鬼眼·杨间',
+                tag: '鬼域穿透',
+                cost: 2,
+                hp: 12,
+                maxHp: 12,
+                atk: 5,
+                revival: 8,
+                skillDesc: '三层鬼眼：同列无敌方单位时直接穿透本体扣血，攻击后复苏+2%',
+                svg: `<svg viewBox="0 0 64 64" class="w-8 h-8 sm:w-10 sm:h-10">
+                        <circle cx="32" cy="32" r="28" fill="#18181b" stroke="#dc2626" stroke-width="2.5"/>
+                        <path d="M12 32 Q32 14 52 32 Q32 50 12 32 Z" fill="#450a0a" stroke="#ef4444" stroke-width="2"/>
+                        <circle cx="32" cy="32" r="7" fill="#ef4444"/>
+                        <circle cx="32" cy="32" r="2.5" fill="#000"/>
+                      </svg>`
+            },
+            {
+                id: 'he_tianxiong',
+                cardType: 'unit',
+                name: '踩人鬼·贺天雄',
+                tag: '速攻突袭',
+                cost: 2,
+                hp: 10,
+                maxHp: 10,
+                atk: 7,
+                revival: 12,
+                rush: true,
+                skillDesc: '肩扛踩人鬼：部署当回合即可立即发动高额灵异突袭',
+                svg: `<svg viewBox="0 0 64 64" class="w-8 h-8 sm:w-10 sm:h-10">
+                        <rect x="8" y="8" width="48" height="48" rx="10" fill="#1c1917" stroke="#d97706" stroke-width="2.5"/>
+                        <path d="M22 46 L26 22 L38 22 L42 46 Z" fill="#78350f"/>
+                        <circle cx="32" cy="18" r="6" fill="#fbbf24"/>
+                        <path d="M16 48 L48 48" stroke="#ef4444" stroke-width="3"/>
+                      </svg>`
+            },
+            {
+                id: 'ye_zhen',
+                cardType: 'unit',
+                name: '替死鬼·叶真',
+                tag: '重装替死',
+                cost: 3,
+                hp: 17,
+                maxHp: 17,
+                atk: 6,
+                revival: 10,
+                skillDesc: '灵异替死：超高生命前排肉盾，承受同列敌方火力压制',
+                svg: `<svg viewBox="0 0 64 64" class="w-8 h-8 sm:w-10 sm:h-10">
+                        <polygon points="32,6 56,22 48,54 16,54 8,22" fill="#18181b" stroke="#eab308" stroke-width="2.5"/>
+                        <path d="M32 14 L32 50 M22 24 L42 24" stroke="#facc15" stroke-width="3" stroke-linecap="round"/>
+                      </svg>`
+            },
+            {
+                id: 'li_leping',
+                cardType: 'unit',
+                name: '遗忘鬼·李乐平',
+                tag: '压制复苏',
+                cost: 2,
+                hp: 11,
+                maxHp: 11,
+                atk: 4,
+                revival: 5,
+                skillDesc: '记忆抹除：每次攻击后降低我方 6% 复苏度，稳固灵异平衡',
+                svg: `<svg viewBox="0 0 64 64" class="w-8 h-8 sm:w-10 sm:h-10">
+                        <circle cx="32" cy="32" r="26" fill="#09090b" stroke="#6366f1" stroke-width="2.5" stroke-dasharray="4 3"/>
+                        <path d="M20 26 Q32 36 44 26 M20 38 Q32 28 44 38" stroke="#818cf8" stroke-width="2.5" fill="none"/>
+                      </svg>`
+            },
+            {
+                id: 'wang_chao',
+                cardType: 'unit',
+                name: '鬼镜·王小明',
+                tag: '灵异推演',
+                cost: 1,
+                hp: 8,
+                maxHp: 8,
+                atk: 3,
+                revival: 4,
+                skillDesc: '总部智囊：部署时额外抽取 1 张卡牌，适合后排支援',
+                drawOnDeploy: 1,
+                svg: `<svg viewBox="0 0 64 64" class="w-8 h-8 sm:w-10 sm:h-10">
+                        <rect x="14" y="10" width="36" height="44" rx="4" fill="#18181b" stroke="#38bdf8" stroke-width="2.5"/>
+                        <circle cx="32" cy="32" r="10" fill="none" stroke="#7dd3fc" stroke-width="2"/>
+                      </svg>`
+            }
+        ];
+
+        /**
+         * 2. 灵异武器、拼接厉鬼与功能道具卡池
+         */
+        const FUNCTION_CARDS = [
+            {
+                id: 'ghost_shadow_merge',
+                cardType: 'func',
+                targetType: 'ally_unit',
+                name: '无头鬼影·拼接',
+                tag: '双鬼平衡',
+                cost: 2,
+                revival: -10,
+                desc: '拼接到我方一名驭鬼者身上：攻击 +4、生命 +6，并形成灵异平衡使复苏 -10%！',
+                svg: `<svg viewBox="0 0 64 64" class="w-8 h-8">
+                        <path d="M20 52 C20 30, 44 30, 44 52 Z" fill="#27272a" stroke="#a855f7" stroke-width="2.5"/>
+                        <path d="M26 26 L38 26" stroke="#c084fc" stroke-width="2" stroke-dasharray="2 2"/>
+                      </svg>`
+            },
+            {
+                id: 'coffin_nail',
+                cardType: 'func',
+                targetType: 'enemy_unit',
+                name: '锈迹棺材钉',
+                tag: '无解压制',
+                cost: 2,
+                revival: 14,
+                desc: '无视站位钉死敌方九宫格内任意一名角色（造成 11 点恐怖压制伤害）',
+                svg: `<svg viewBox="0 0 64 64" class="w-8 h-8">
+                        <path d="M32 8 L36 16 L34 54 L30 54 L28 16 Z" fill="#991b1b" stroke="#f87171" stroke-width="1.5"/>
+                        <rect x="24" y="10" width="16" height="4" fill="#7f1d1d"/>
+                      </svg>`
+            },
+            {
+                id: 'gold_bullet',
+                cardType: 'func',
+                targetType: 'ally_unit',
+                name: '特制黄金武器',
+                tag: '黄金武装',
+                cost: 1,
+                revival: -6,
+                desc: '为我方一名角色配备黄金武器（攻击 +3、生命 +4，复苏 -6%）',
+                svg: `<svg viewBox="0 0 64 64" class="w-8 h-8">
+                        <polygon points="32,10 46,38 32,54 18,38" fill="#b45309" stroke="#fcd34d" stroke-width="2"/>
+                      </svg>`
+            },
+            {
+                id: 'red_candle',
+                cardType: 'func',
+                targetType: 'self',
+                name: '红色鬼烛',
+                tag: '保命底牌',
+                cost: 1,
+                revival: -16,
+                desc: '点燃红色鬼烛吸引厉鬼规律：恢复本体 5 点生命并降低 16% 复苏度',
+                svg: `<svg viewBox="0 0 64 64" class="w-8 h-8">
+                        <rect x="27" y="24" width="10" height="30" rx="2" fill="#dc2626"/>
+                        <path d="M32 10 Q37 18 32 23 Q27 18 32 10 Z" fill="#fbbf24"/>
+                      </svg>`
+            }
+        ];
+
+        function createEmptyGrid() {
+            return Array(9).fill(null);
+        }
+
+        let game = {
+            mode: 'pve',
+            stageIdx: 0,
+            roomCode: null,
+            myRole: null,
+            turn: 1,
+            isMyTurn: true,
+            selectedHandIdx: null,
+            logs: [],
+            player: {
+                hp: 30,
+                maxHp: 30,
+                revival: 0,
+                energy: 4,
+                maxEnergy: 4,
+                grid: createEmptyGrid(),
+                hand: []
+            },
+            enemy: {
+                name: '第一关·敲门鬼',
+                hp: 30,
+                maxHp: 30,
+                revival: 10,
+                grid: createEmptyGrid()
+            }
+        };
+
+        const PVE_BOSSES = [
+            { name: '第一关·敲门鬼罗文松', hp: 28, revival: 10 },
+            { name: '第二关·朋友圈方世明', hp: 36, revival: 15 },
+            { name: '第三关·S级鬼差压制', hp: 46, revival: 5 }
+        ];
+
+        function startPveBattle(stageIdx = 0) {
+            closeLobbyModal();
+            const boss = PVE_BOSSES[stageIdx];
+            game.mode = 'pve';
+            game.stageIdx = stageIdx;
+            game.turn = 1;
+            game.isMyTurn = true;
+            game.selectedHandIdx = null;
+            game.logs = [];
+
+            game.player = {
+                hp: 30,
+                maxHp: 30,
+                revival: 0,
+                energy: 4,
+                maxEnergy: 4,
+                grid: createEmptyGrid(),
+                hand: []
+            };
+
+            game.enemy = {
+                name: boss.name,
+                hp: boss.hp,
+                maxHp: boss.hp,
+                revival: boss.revival,
+                grid: createEmptyGrid()
+            };
+
+            // 敌方初始布阵：前排中(7号位)与中排中(4号位)
+            game.enemy.grid[7] = { ...CHARACTERS[0], currentHp: 12, canAttack: false, merged: false };
+            if (stageIdx >= 1) {
+                game.enemy.grid[4] = { ...CHARACTERS[3], currentHp: 11, canAttack: false, merged: false };
+            }
+
+            document.getElementById('modeBadge').textContent = 'PVE';
+            document.getElementById('headerTitle').textContent = '神秘复苏·九宫驭鬼对决';
+            document.getElementById('roomStatusSubtitle').textContent = `当前关卡：${boss.name}`;
+            document.getElementById('enemyOnlineDot').className = 'w-2 h-2 rounded-full bg-red-500';
+
+            drawHandCards(5);
+            addBattleLog(`遭遇【${boss.name}】，九宫格灵异布阵开始！`);
+            renderAll();
+        }
+
+        function restartCurrentPve() {
+            document.getElementById('endModal').classList.add('hidden');
+            document.getElementById('endModal').classList.remove('flex');
+            startPveBattle(game.stageIdx);
+        }
+
+        function drawHandCards(count) {
+            const pool = [...CHARACTERS, ...FUNCTION_CARDS];
             for (let i = 0; i < count; i++) {
-                if (state.hand.length >= 6) break;
-                if (state.deck.length === 0) state.deck = buildDeck();
-                state.hand.push(state.deck.pop());
+                if (game.player.hand.length >= 6) break;
+                const template = pool[Math.floor(Math.random() * pool.length)];
+                game.player.hand.push({ ...template, uid: Math.random().toString(36).slice(2, 9) });
             }
         }
 
-        function selectCard(uid) {
-            if (!state.isPlayerTurn || state.gameOver) return;
-            const card = state.hand.find(c => c.uid === uid);
+        function selectHandCard(idx) {
+            if (!game.isMyTurn) {
+                showHint("当前是对手回合，请等待行动结束！");
+                return;
+            }
+            const card = game.player.hand[idx];
             if (!card) return;
-            if (state.playerEnergy < card.cost) {
-                showFloatingText('playerEnergyText', '灵异值不足!', '#fbbf24');
+
+            if (game.selectedHandIdx === idx) {
+                game.selectedHandIdx = null;
+                showHint("已取消选中卡牌。");
+                renderAll();
                 return;
             }
 
-            if (card.type === 'weapon') {
-                state.playerEnergy -= card.cost;
-                state.hand = state.hand.filter(c => c.uid !== uid);
-                SoundFX.attack();
-
-                if (card.damage) {
-                    state.opponentHp = Math.max(0, state.opponentHp - card.damage);
-                    FXEngine.spawnBeam('playerHandContainer', 'opponentNameLabel', '#ef4444');
-                    showFloatingText('opponentNameLabel', `-${card.damage}`, '#ef4444');
-                    addLog(`你使用了【${card.name}】，对对手造成 ${card.damage} 点穿透伤害！`);
-                }
-                if (card.heal) {
-                    state.playerHp = Math.min(state.playerMaxHp, state.playerHp + card.heal);
-                    showFloatingText('playerHpBar', `+${card.heal}意识`, '#34d399');
-                }
-                if (card.revival) {
-                    state.playerRevival = Math.max(0, state.playerRevival + card.revival);
-                }
-                updateUI();
-                checkWin();
-            } else {
-                state.selectedCardUid = uid;
-                renderGrids();
-                addLog(`已选择【${card.name}】，请点击我方九宫格空位将其部署上阵！`);
-            }
-        }
-
-        function handleGridClick(index) {
-            if (!state.selectedCardUid || !state.isPlayerTurn || state.gameOver) return;
-            if (state.playerGrid[index] !== null) {
-                addLog('该九宫格位置已有驭鬼者驻守！');
+            if (game.player.energy < card.cost) {
+                showHint(`灵异点不足（需要 ${card.cost} 点）！`);
                 return;
             }
 
-            const cardIdx = state.hand.findIndex(c => c.uid === state.selectedCardUid);
-            if (cardIdx === -1) return;
-            const card = state.hand[cardIdx];
-
-            if (state.playerEnergy < card.cost) return;
-
-            state.playerEnergy -= card.cost;
-            state.hand.splice(cardIdx, 1);
-            state.playerGrid[index] = { ...card, currentHp: card.hp };
-            state.selectedCardUid = null;
-
-            SoundFX.card();
-            addLog(`你成功将【${card.name}】部署至阵地第 ${index + 1} 位！`);
-            renderGrids();
-            updateUI();
-        }
-
-        function useSuppressAbility() {
-            if (!state.isPlayerTurn || state.gameOver || state.playerEnergy < 2) return;
-            state.playerEnergy -= 2;
-            state.playerRevival = Math.max(0, state.playerRevival - 15);
-            SoundFX.attack();
-            addLog('你强行消耗灵异力量压制体内复苏，复苏度降低 15%。');
-            updateUI();
-        }
-
-        function endPlayerTurn() {
-            if (!state.isPlayerTurn || state.gameOver) return;
-            state.isPlayerTurn = false;
-            updateUI();
-            addLog(`--- 你的回合结束，对手【${state.opponentName}】开始反击 ---`);
-
-            setTimeout(() => {
-                executeOpponentTurn();
-            }, 1000);
-        }
-
-        function executeOpponentTurn() {
-            if (state.gameOver) return;
-
-            const dmg = 7 + Math.floor(Math.random() * 5);
-            state.playerHp = Math.max(0, state.playerHp - dmg);
-            FXEngine.spawnBeam('opponentNameLabel', 'playerHpBar', '#ef4444');
-            showFloatingText('playerHpBar', `-${dmg}`, '#ef4444');
-            addLog(`对手发动灵异袭击，对你造成了 ${dmg} 点意识伤害！`);
-
-            state.opponentRevival += 10;
-
-            if (checkWin()) return;
-
-            setTimeout(() => {
-                state.turn++;
-                state.isPlayerTurn = true;
-                state.playerMaxEnergy = Math.min(6, 3 + Math.floor((state.turn - 1) / 2));
-                state.playerEnergy = state.playerMaxEnergy;
-                drawCards(2);
-                addLog(`=== 第 ${state.turn} 回合开始 · 你的回合 ===`);
-                updateUI();
-            }, 900);
-        }
-
-        function checkWin() {
-            if (state.gameOver) return true;
-            if (state.playerHp <= 0 || state.playerRevival >= 100) {
-                triggerGameOver(false, '对局战败 · 厉鬼复苏', '你的意识彻底消散，厉鬼全面复苏！');
-                return true;
+            // 直接对本体生效的保命道具（如红色鬼烛）
+            if (card.cardType === 'func' && card.targetType === 'self') {
+                game.player.energy -= card.cost;
+                game.player.hand.splice(idx, 1);
+                game.player.hp = Math.min(game.player.maxHp, game.player.hp + 5);
+                game.player.revival = Math.max(0, game.player.revival + card.revival);
+                addBattleLog(`点燃【${card.name}】，恢复 5 点本体生命，复苏度降低 16%！`);
+                syncIfCloud(`对手点燃了【${card.name}】压制复苏`);
+                renderAll();
+                return;
             }
-            if (state.opponentHp <= 0 || state.opponentRevival >= 100) {
-                triggerGameOver(true, '对局胜利 · 关押成功', '你成功压制并击溃对手，排位积分上升！');
-                return true;
+
+            game.selectedHandIdx = idx;
+            if (card.cardType === 'unit') {
+                showHint(`已选中【${card.name}】，请点击下方我方九宫格的空位进行部署！`);
+            } else if (card.targetType === 'enemy_unit') {
+                showHint(`已选中【${card.name}】，请点击上方敌方九宫格中的目标进行钉杀！`);
+            } else if (card.targetType === 'ally_unit') {
+                showHint(`已选中【${card.name}】，请点击下方我方九宫格中的角色进行强化/双鬼拼接！`);
             }
-            return false;
+            renderAll();
         }
 
-        function triggerGameOver(isWin, title, desc) {
-            state.gameOver = true;
-            if (isWin) {
-                state.score += 25;
-                SoundFX.win();
-            } else {
-                state.score = Math.max(0, state.score - 15);
-            }
-            document.getElementById('endTitle').textContent = title;
-            document.getElementById('endDesc').textContent = `${desc} 当前积分为: ${state.score}`;
-            document.getElementById('gameOverModal').classList.remove('hidden');
-            document.getElementById('gameOverModal').classList.add('flex');
-            updateUI();
-        }
+        // 点击我方九宫格 (0-2前排, 3-5中排, 6-8后排)
+        function onPlayerCellClick(cellIdx) {
+            if (!game.isMyTurn) return;
+            const selectedCard = game.selectedHandIdx !== null ? game.player.hand[game.selectedHandIdx] : null;
+            const cellUnit = game.player.grid[cellIdx];
 
-        function closeGameOverModal() {
-            document.getElementById('gameOverModal').classList.add('hidden');
-            document.getElementById('gameOverModal').classList.remove('flex');
-            toggleModeSelectModal(true);
-        }
-
-        function renderGrids() {
-            const oppContainer = document.getElementById('enemyGridContainer');
-            oppContainer.innerHTML = state.opponentGrid.map((slot, idx) => {
-                if (!slot) return `<div class="grid-slot flex items-center justify-center text-zinc-700 text-xs">空</div>`;
-                return `
-                    <div class="grid-slot grid-card p-2 flex flex-col justify-between border-red-900/60">
-                        <div class="flex justify-between text-[10px]">
-                            <span class="text-red-400">${slot.tag}</span>
-                            <span class="text-emerald-400">HP:${slot.currentHp}</span>
-                        </div>
-                        <div class="text-center text-xl">${slot.icon}</div>
-                        <div class="text-[10px] text-zinc-300 font-bold truncate text-center">${slot.name}</div>
-                    </div>
-                `;
-            }).join('');
-
-            const playerContainer = document.getElementById('playerGridContainer');
-            playerContainer.innerHTML = state.playerGrid.map((slot, idx) => {
-                const isHighlight = state.selectedCardUid !== null && slot === null;
-                if (!slot) {
-                    return `
-                        <div onclick="handleGridClick(${idx})" class="grid-slot ${isHighlight ? 'highlight' : ''} flex items-center justify-center cursor-pointer">
-                            <span class="text-zinc-600 text-xs">${isHighlight ? '+ 部署' : '阵地 ' + (idx+1)}</span>
-                        </div>
-                    `;
+            // 1. 部署角色卡到空位
+            if (selectedCard && selectedCard.cardType === 'unit') {
+                if (cellUnit) {
+                    showHint("该战棋格已有驭鬼者驻守，请选择空位！");
+                    return;
                 }
-                return `
-                    <div class="grid-slot grid-card p-2 flex flex-col justify-between border-amber-700/60">
-                        <div class="flex justify-between text-[10px]">
-                            <span class="text-amber-400">${slot.tag}</span>
-                            <span class="text-emerald-400">HP:${slot.currentHp}</span>
-                        </div>
-                        <div class="text-center text-xl">${slot.icon}</div>
-                        <div class="text-[10px] text-zinc-200 font-bold truncate text-center">${slot.name}</div>
-                    </div>
-                `;
-            }).join('');
+                game.player.energy -= selectedCard.cost;
+                game.player.revival = Math.min(100, game.player.revival + selectedCard.revival);
+                game.player.grid[cellIdx] = {
+                    ...selectedCard,
+                    currentHp: selectedCard.hp,
+                    canAttack: !!selectedCard.rush,
+                    merged: false
+                };
+                game.player.hand.splice(game.selectedHandIdx, 1);
+                game.selectedHandIdx = null;
+
+                if (selectedCard.drawOnDeploy) {
+                    drawHandCards(selectedCard.drawOnDeploy);
+                }
+
+                addBattleLog(`部署【${selectedCard.name}】至我方 ${cellIdx + 1} 号战棋位（复苏+${selectedCard.revival}%）！`);
+                checkWinLoss();
+                syncIfCloud(`对手在阵地部署了【${selectedCard.name}】`);
+                renderAll();
+                return;
+            }
+
+            // 2. 使用道具/第二只鬼强化我方角色
+            if (selectedCard && selectedCard.cardType === 'func' && selectedCard.targetType === 'ally_unit') {
+                if (!cellUnit) {
+                    showHint("请点击我方已上阵的驭鬼者进行强化或双鬼拼接！");
+                    return;
+                }
+                game.player.energy -= selectedCard.cost;
+                game.player.revival = Math.max(0, game.player.revival + selectedCard.revival);
+
+                if (selectedCard.id === 'ghost_shadow_merge') {
+                    cellUnit.atk += 4;
+                    cellUnit.currentHp += 6;
+                    cellUnit.maxHp += 6;
+                    cellUnit.merged = true;
+                    addBattleLog(`【${cellUnit.name}】成功拼接无头鬼影，形成双鬼平衡！攻+4、血+6、复苏-10%！`);
+                } else {
+                    cellUnit.atk += 3;
+                    cellUnit.currentHp += 4;
+                    cellUnit.maxHp += 4;
+                    addBattleLog(`为【${cellUnit.name}】装备黄金武器，攻+3、血+4、复苏-6%！`);
+                }
+
+                game.player.hand.splice(game.selectedHandIdx, 1);
+                game.selectedHandIdx = null;
+                triggerSlotEffect('player', cellIdx, '双鬼强化!', '#fbbf24');
+                syncIfCloud(`对手强化了【${cellUnit.name}】`);
+                renderAll();
+                return;
+            }
+
+            // 3. 指挥场上可袭击的驭鬼者发起同列袭击
+            if (cellUnit && cellUnit.canAttack) {
+                executeUnitAttack(cellIdx);
+            } else if (cellUnit && !cellUnit.canAttack) {
+                showHint("该角色本回合刚部署或已行动，下回合可袭击！");
+            }
         }
 
-        function updateUI() {
-            document.getElementById('playerScoreBadge').textContent = `排位积分: ${state.score}`;
-            document.getElementById('gameModeBadgeText').textContent = state.mode === 'pve' ? 'PVE' : 'PVP';
-            document.getElementById('currentModeTitle').textContent = state.mode === 'pve' ? '灵异事件·剧情战役' : (state.mode === 'pvp_match' ? 'PVP·排位随机匹配' : 'PVP·私密房间对决');
+        // 点击敌方九宫格 (0-2后排, 3-5中排, 6-8前排)
+        function onEnemyCellClick(cellIdx) {
+            if (!game.isMyTurn) return;
+            const selectedCard = game.selectedHandIdx !== null ? game.player.hand[game.selectedHandIdx] : null;
+            const targetUnit = game.enemy.grid[cellIdx];
 
-            document.getElementById('playerHpBar').style.width = `${(state.playerHp/state.playerMaxHp)*100}%`;
-            document.getElementById('playerHpText').textContent = `${state.playerHp}/${state.playerMaxHp}`;
-            document.getElementById('playerRevivalBar').style.width = `${state.playerRevival}%`;
-            document.getElementById('playerRevivalText').textContent = `${state.playerRevival}%`;
-            document.getElementById('playerEnergyText').textContent = `${state.playerEnergy} / ${state.playerMaxEnergy}`;
+            if (selectedCard && selectedCard.cardType === 'func' && selectedCard.targetType === 'enemy_unit') {
+                if (!targetUnit) {
+                    showHint("请点击敌方九宫格中存在角色的位置！");
+                    return;
+                }
+                game.player.energy -= selectedCard.cost;
+                game.player.revival = Math.min(100, game.player.revival + selectedCard.revival);
+                targetUnit.currentHp -= 11;
+                game.player.hand.splice(game.selectedHandIdx, 1);
+                game.selectedHandIdx = null;
 
-            document.getElementById('opponentNameLabel').textContent = `对手：${state.opponentName}`;
-            document.getElementById('enemyHpText').textContent = `${state.opponentHp}/${state.opponentMaxHp}`;
-            document.getElementById('enemyRevText').textContent = `${state.opponentRevival}%`;
+                let msg = `动用【${selectedCard.name}】钉穿敌方【${targetUnit.name}】造成 11 点伤害！`;
+                if (targetUnit.currentHp <= 0) {
+                    game.enemy.grid[cellIdx] = null;
+                    msg += ` 敌方被彻底关押！`;
+                }
+                addBattleLog(msg);
+                checkWinLoss();
+                syncIfCloud(msg);
+                renderAll();
+                setTimeout(() => triggerSlotEffect('enemy', cellIdx, '-11 压制', '#ef4444'), 30);
+            }
+        }
 
-            const handContainer = document.getElementById('playerHandContainer');
-            handContainer.innerHTML = state.hand.map(card => {
-                const canAfford = state.isPlayerTurn && state.playerEnergy >= card.cost;
-                const isSelected = state.selectedCardUid === card.uid;
-                return `
-                    <div onclick="selectCard('${card.uid}')"
-                         class="ghost-card ${canAfford ? 'cursor-pointer' : 'disabled'} ${isSelected ? 'border-amber-400 scale-105' : ''} w-28 sm:w-32 h-40 sm:h-44 rounded-lg p-2 flex flex-col justify-between shrink-0 select-none">
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-[9px] px-1 py-0.2 rounded bg-zinc-900 border border-zinc-700 ${card.color}">${card.tag}</span>
-                                <span class="w-4 h-4 rounded-full bg-amber-950 border border-amber-500 text-amber-300 text-[10px] font-black flex items-center justify-center font-mono">${card.cost}</span>
+        // 核心战斗法则：同列阻挡与穿透扣血
+        function executeUnitAttack(playerCellIdx) {
+            const attacker = game.player.grid[playerCellIdx];
+            if (!attacker || !attacker.canAttack) return;
+
+            attacker.canAttack = false;
+            const col = playerCellIdx % 3;
+
+            // 在敌方同一列中从前排(6+col) -> 中排(3+col) -> 后排(col)寻找阻挡单位
+            const enemyColCells = [6 + col, 3 + col, col];
+            let targetIdx = -1;
+            for (const idx of enemyColCells) {
+                if (game.enemy.grid[idx]) {
+                    targetIdx = idx;
+                    break;
+                }
+            }
+
+            if (attacker.id === 'li_leping') {
+                game.player.revival = Math.max(0, game.player.revival - 6);
+            } else if (attacker.id === 'yang_jian') {
+                game.player.revival = Math.min(100, game.player.revival + 2);
+            }
+
+            if (targetIdx !== -1) {
+                const defender = game.enemy.grid[targetIdx];
+                defender.currentHp -= attacker.atk;
+                let msg = `【${attacker.name}】袭击同列敌方【${defender.name}】，造成 ${attacker.atk} 点伤害！`;
+                if (defender.currentHp <= 0) {
+                    game.enemy.grid[targetIdx] = null;
+                    msg += ` 【${defender.name}】已被关押清除！`;
+                }
+                addBattleLog(msg);
+                syncIfCloud(msg);
+                checkWinLoss();
+                renderAll();
+                setTimeout(() => triggerSlotEffect('enemy', targetIdx, `-${attacker.atk}`, '#ef4444'), 30);
+            } else {
+                // 同列无任何阻挡，直接穿透扣除敌方指挥官本体生命！
+                game.enemy.hp = Math.max(0, game.enemy.hp - attacker.atk);
+                const msg = `⚡ 第${col + 1}列无阻挡！【${attacker.name}】直接穿透袭击敌方本体，扣除 ${attacker.atk} 点生命！`;
+                addBattleLog(msg);
+                syncIfCloud(msg);
+                checkWinLoss();
+                renderAll();
+                triggerBodyHit('enemyHpVal', `-${attacker.atk}`);
+            }
+        }
+
+        // 手动压制按钮（消耗2灵异点降低15%复苏度）
+        function suppressMyRevival() {
+            if (!game.isMyTurn) return;
+            if (game.player.energy < 2) {
+                showHint("压制厉鬼需要消耗 2 点灵异点！");
+                return;
+            }
+            if (game.player.revival <= 0) {
+                showHint("当前复苏度为 0%，无需额外压制。");
+                return;
+            }
+            game.player.energy -= 2;
+            game.player.revival = Math.max(0, game.player.revival - 15);
+            addBattleLog("你消耗 2 点灵异点强行压制体内厉鬼，复苏度降低 15%！");
+            syncIfCloud("对手强行压制了体内厉鬼复苏");
+            renderAll();
+        }
+
+        function handleEndTurn() {
+            if (!game.isMyTurn) return;
+            game.selectedHandIdx = null;
+            game.isMyTurn = false;
+
+            if (game.mode === 'pvp_cloud') {
+                addBattleLog("你结束了回合，等待云端对手行动...");
+                window.pushCloudRoomUpdate("对手结束了回合，轮到你行动！", true);
+                renderAll();
+                return;
+            }
+
+            addBattleLog(`第 ${game.turn} 夜结束，【${game.enemy.name}】发动灵异反击...`);
+            renderAll();
+
+            setTimeout(() => {
+                // 敌方场上单位按同列发起袭击
+                for (let i = 0; i < 9; i++) {
+                    const enemyUnit = game.enemy.grid[i];
+                    if (enemyUnit) {
+                        const col = i % 3;
+                        const playerColCells = [col, 3 + col, 6 + col];
+                        let blockIdx = -1;
+                        for (const pIdx of playerColCells) {
+                            if (game.player.grid[pIdx]) {
+                                blockIdx = pIdx;
+                                break;
+                            }
+                        }
+
+                        if (blockIdx !== -1) {
+                            const pUnit = game.player.grid[blockIdx];
+                            pUnit.currentHp -= enemyUnit.atk;
+                            if (pUnit.currentHp <= 0) {
+                                game.player.grid[blockIdx] = null;
+                                addBattleLog(`敌方【${enemyUnit.name}】击溃了我方前排【${pUnit.name}】！`);
+                            } else {
+                                addBattleLog(`敌方【${enemyUnit.name}】袭击我方【${pUnit.name}】，造成 ${enemyUnit.atk} 点伤害！`);
+                            }
+                        } else {
+                            game.player.hp = Math.max(0, game.player.hp - enemyUnit.atk);
+                            addBattleLog(`⚠️ 第 ${col + 1} 列空虚，本体遭到【${enemyUnit.name}】直击，扣除 ${enemyUnit.atk} 点生命！`);
+                        }
+                    }
+                }
+
+                // 敌方补充部署新角色
+                const emptySlots = [];
+                game.enemy.grid.forEach((u, idx) => { if (!u) emptySlots.push(idx); });
+                if (emptySlots.length > 0 && Math.random() > 0.2) {
+                    const pickSlot = emptySlots[Math.floor(Math.random() * emptySlots.length)];
+                    const pickChar = CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
+                    game.enemy.grid[pickSlot] = { ...pickChar, currentHp: pickChar.hp, merged: false };
+                    addBattleLog(`敌方在阵地补充部署了【${pickChar.name}】！`);
+                }
+
+                // 进入我方新回合
+                game.turn++;
+                game.isMyTurn = true;
+                game.player.maxEnergy = Math.min(6, 3 + Math.floor(game.turn / 2));
+                game.player.energy = game.player.maxEnergy;
+                game.player.grid.forEach(u => { if (u) u.canAttack = true; });
+                drawHandCards(2);
+
+                checkWinLoss();
+                renderAll();
+            }, 700);
+        }
+
+        function syncIfCloud(msg) {
+            if (game.mode === 'pvp_cloud' && window.pushCloudRoomUpdate) {
+                window.pushCloudRoomUpdate(msg, false);
+            }
+        }
+
+        function checkWinLoss() {
+            if (game.player.revival >= 100) {
+                showEndModal(false, "你的复苏度达到 100%，体内厉鬼彻底苏醒并吞噬了你的意识！");
+            } else if (game.player.hp <= 0) {
+                showEndModal(false, "你的本体生命归零，意识在灵异袭击中彻底消散！");
+            } else if (game.enemy.hp <= 0 || game.enemy.revival >= 100) {
+                showEndModal(true, `你成功击败了【${game.enemy.name}】，关押了这起恐怖的灵异事件！`);
+            }
+        }
+
+        function triggerSlotEffect(side, idx, text, color) {
+            const container = document.getElementById(side === 'enemy' ? 'enemyGridContainer' : 'playerGridContainer');
+            const slotEl = container?.children[idx];
+            if (!slotEl) return;
+            slotEl.classList.add('animate-hit');
+            const pop = document.createElement('div');
+            pop.className = 'float-dmg';
+            pop.style.color = color;
+            pop.textContent = text;
+            slotEl.appendChild(pop);
+            setTimeout(() => pop.remove(), 1100);
+        }
+
+        function triggerBodyHit(elId, text) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            el.classList.add('animate-bounce');
+            setTimeout(() => el.classList.remove('animate-bounce'), 600);
+        }
+
+        function renderAll() {
+            document.getElementById('enemyNameText').textContent = game.enemy.name;
+            document.getElementById('enemyHpVal').textContent = game.enemy.hp;
+            document.getElementById('enemyRevivalVal').textContent = `${game.enemy.revival}%`;
+
+            document.getElementById('playerHpVal').textContent = game.player.hp;
+            document.getElementById('playerRevivalVal').textContent = `${game.player.revival}%`;
+            document.getElementById('playerEnergyVal').textContent = `${game.player.energy}/${game.player.maxEnergy}`;
+
+            const turnBanner = document.getElementById('turnBanner');
+            turnBanner.textContent = game.isMyTurn ? `第 ${game.turn} 夜 · 你的回合` : `第 ${game.turn} 夜 · 对手行动中`;
+            turnBanner.className = game.isMyTurn
+                ? 'px-2.5 py-0.5 rounded text-[11px] font-bold bg-red-950 text-red-200 border border-red-700'
+                : 'px-2.5 py-0.5 rounded text-[11px] font-bold bg-zinc-800 text-zinc-400 border border-zinc-700';
+
+            const selectedCard = game.selectedHandIdx !== null ? game.player.hand[game.selectedHandIdx] : null;
+
+            // 渲染敌方 3x3 九宫格 (0-2后排, 3-5中排, 6-8前排)
+            const enemyGridEl = document.getElementById('enemyGridContainer');
+            enemyGridEl.innerHTML = game.enemy.grid.map((unit, idx) => {
+                const isTargetable = selectedCard && selectedCard.cardType === 'func' && selectedCard.targetType === 'enemy_unit' && unit;
+                const rowLabel = idx >= 6 ? '前排' : (idx >= 3 ? '中排' : '后排');
+                if (!unit) {
+                    return `<div class="board-slot flex flex-col items-center justify-center opacity-50">
+                                <span class="text-[9px] text-zinc-600">${rowLabel}·空</span>
+                            </div>`;
+                }
+                return `<div onclick="onEnemyCellClick(${idx})" class="board-slot ${isTargetable ? 'target-ready' : ''} p-1.5 flex flex-col items-center justify-between">
+                            <div class="w-full flex justify-between items-center text-[9px]">
+                                <span class="text-zinc-400">${rowLabel}</span>
+                                <span class="px-1 rounded bg-red-950 text-red-300 font-mono">攻${unit.atk}</span>
                             </div>
-                            <div class="text-center my-1 text-2xl">${card.icon}</div>
-                            <div class="font-bold text-[10px] text-zinc-100 text-center truncate">${card.name}</div>
-                        </div>
-                        <p class="text-[9px] text-zinc-300 leading-tight line-clamp-3">${card.desc}</p>
-                    </div>
-                `;
+                            ${unit.svg}
+                            <div class="w-full text-center">
+                                <div class="text-[10px] font-bold text-red-300 truncate">${unit.name}</div>
+                                <div class="text-[9px] text-emerald-400 font-mono">血 ${unit.currentHp}/${unit.maxHp}</div>
+                            </div>
+                        </div>`;
+            }).join('');
+
+            // 渲染我方 3x3 九宫格 (0-2前排, 3-5中排, 6-8后排)
+            const playerGridEl = document.getElementById('playerGridContainer');
+            playerGridEl.innerHTML = game.player.grid.map((unit, idx) => {
+                const rowLabel = idx <= 2 ? '前排' : (idx <= 5 ? '中排' : '后排');
+                const canDeploy = selectedCard && selectedCard.cardType === 'unit' && !unit;
+                const canBuff = selectedCard && selectedCard.cardType === 'func' && selectedCard.targetType === 'ally_unit' && unit;
+
+                if (!unit) {
+                    return `<div onclick="onPlayerCellClick(${idx})" class="board-slot ${canDeploy ? 'deploy-ready' : ''} flex flex-col items-center justify-center">
+                                <span class="text-[10px] ${canDeploy ? 'text-red-400 font-bold' : 'text-zinc-600'}">${canDeploy ? '+ 点击部署' : rowLabel}</span>
+                            </div>`;
+                }
+                return `<div onclick="onPlayerCellClick(${idx})" class="board-slot ${canBuff ? 'target-ready' : ''} ${unit.canAttack && game.isMyTurn ? 'unit-active' : ''} p-1.5 flex flex-col items-center justify-between">
+                            <div class="w-full flex justify-between items-center text-[9px]">
+                                <span class="px-1 rounded bg-amber-950 text-amber-300 font-mono">攻${unit.atk}</span>
+                                <span class="${unit.canAttack && game.isMyTurn ? 'text-emerald-400 font-bold' : 'text-zinc-500'}">${unit.canAttack && game.isMyTurn ? '可袭击' : (unit.merged ? '双鬼态' : '待命')}</span>
+                            </div>
+                            ${unit.svg}
+                            <div class="w-full text-center">
+                                <div class="text-[10px] font-bold text-amber-200 truncate">${unit.name}</div>
+                                <div class="text-[9px] text-emerald-400 font-mono">血 ${unit.currentHp}/${unit.maxHp}</div>
+                            </div>
+                        </div>`;
+            }).join('');
+
+            // 渲染底部手牌
+            const handEl = document.getElementById('playerHandRow');
+            handEl.innerHTML = game.player.hand.map((card, idx) => {
+                const isSelected = game.selectedHandIdx === idx;
+                const badgeText = `${card.tag} · ${card.cost}费`;
+                const badgeColor = card.cardType === 'unit' ? 'text-red-300 bg-red-950/90' : 'text-amber-300 bg-amber-950/90';
+                return `<div onclick="selectHandCard(${idx})" class="deck-card ${isSelected ? 'card-selected' : ''} w-28 sm:w-32 p-2 rounded-xl flex flex-col justify-between cursor-pointer shrink-0">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="text-[9px] px-1.5 py-0.5 rounded font-bold ${badgeColor}">${badgeText}</span>
+                                <span class="text-[9px] text-red-400 font-mono">${card.revival > 0 ? '+' + card.revival : card.revival}%</span>
+                            </div>
+                            <div class="my-1 flex flex-col items-center">
+                                ${card.svg}
+                                <div class="text-[11px] font-bold text-zinc-100 mt-0.5 truncate w-full text-center">${card.name}</div>
+                            </div>
+                            <p class="text-[9px] text-zinc-400 leading-tight line-clamp-2">${card.cardType === 'unit' ? card.skillDesc : card.desc}</p>
+                        </div>`;
             }).join('');
         }
 
-        function addLog(msg) {
-            document.getElementById('latestLogText').textContent = msg;
+        function addBattleLog(text) {
+            game.logs.unshift(`[第${game.turn}夜] ${text}`);
+            if (game.logs.length > 60) game.logs.pop();
+            document.getElementById('actionHintText').textContent = text;
+            document.getElementById('logListBox').innerHTML = game.logs.map(l => `<div>${l}</div>`).join('');
         }
 
-        function toggleModeSelectModal(show) {
-            const m = document.getElementById('modeSelectModal');
+        function showHint(text) {
+            document.getElementById('actionHintText').textContent = text;
+        }
+
+        function toggleTutorialModal(show) {
+            const m = document.getElementById('tutorialModal');
             m.classList.toggle('hidden', !show);
             m.classList.toggle('flex', show);
         }
-
-        function toggleRulesModal(show) {
-            const m = document.getElementById('rulesModal');
+        function openLobbyModal() {
+            const m = document.getElementById('lobbyModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+        function closeLobbyModal() {
+            const m = document.getElementById('lobbyModal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+        function toggleLogModal(show) {
+            const m = document.getElementById('logModal');
             m.classList.toggle('hidden', !show);
             m.classList.toggle('flex', show);
         }
-
-        function showFloatingText(targetId, text, color) {
-            const target = document.getElementById(targetId);
-            if (!target) return;
-            const rect = target.getBoundingClientRect();
-            const f = document.createElement('div');
-            f.className = 'floating-text text-xs sm:text-sm';
-            f.style.color = color;
-            f.style.left = `${rect.left + rect.width / 2}px`;
-            f.style.top = `${rect.top}px`;
-            f.textContent = text;
-            document.body.appendChild(f);
-            setTimeout(() => f.remove(), 1200);
+        function showEndModal(win, desc) {
+            const m = document.getElementById('endModal');
+            const t = document.getElementById('endResultTitle');
+            t.textContent = win ? '灵异事件关押成功' : '厉鬼复苏 · 意识沉沦';
+            t.className = win ? 'text-2xl font-black text-emerald-400' : 'text-2xl font-black text-red-500';
+            document.getElementById('endResultDesc').textContent = desc;
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+        function closeEndModalAndOpenLobby() {
+            document.getElementById('endModal').classList.add('hidden');
+            document.getElementById('endModal').classList.remove('flex');
+            openLobbyModal();
         }
 
         window.onload = function() {
-            FXEngine.init();
-            startPveStage(0);
+            startPveBattle(0);
         };
     </script>
 </body>
