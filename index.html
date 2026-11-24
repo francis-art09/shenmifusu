@@ -105,21 +105,23 @@
       box-shadow: 0 0 7px rgba(244, 63, 94, 0.95);
     }
     .mana-diamond.filled-enemy {
-      background: linear-gradient(135deg, #f5f5f4, #a8a29e);
-      border-color: #ffffff;
-      box-shadow: 0 0 6px rgba(255, 255, 255, 0.85);
+      background: linear-gradient(135deg, #f87171, #991b1b);
+      border-color: #fecaca;
+      box-shadow: 0 0 7px rgba(220, 38, 38, 0.9);
     }
 
-    /* 竖向修长卡牌比例统一尺寸（总部、部署卡位、前线卡位保持 2:3 竖向卡牌造型） */
+    /* 竖向修长卡牌比例统一尺寸（严格限制宽高上限，杜绝卡片撑大撑爆页面） */
     .card-aspect-slot {
-      width: 62px;
-      height: 92px;
+      width: clamp(44px, 6.2vw, 76px);
+      height: clamp(64px, 18vh, 108px);
+      max-width: 76px;
+      max-height: 108px;
       flex-shrink: 0;
     }
-    @media (min-width: 768px) {
+    @media (max-height: 540px) {
       .card-aspect-slot {
-        width: 68px;
-        height: 100px;
+        width: 44px;
+        height: 64px;
       }
     }
 
@@ -354,25 +356,27 @@
     .domain-flash {
       position: fixed;
       inset: 0;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(220, 38, 38, 0.55) 0%, rgba(45, 5, 5, 0.9) 100%),
-        repeating-linear-gradient(45deg, rgba(0,0,0,0.25) 0px, rgba(0,0,0,0.25) 2px, transparent 2px, transparent 8px);
+      background: radial-gradient(circle at center, rgba(220, 38, 38, 0.55) 0%, rgba(127, 29, 29, 0.25) 60%, transparent 100%);
       pointer-events: none;
-      z-index: 90;
-      animation: ghostDomainPulse 0.85s ease-out forwards;
+      z-index: 9985;
+      animation: ghostDomainPulse 0.72s ease-out forwards;
     }
 
-    /* 底部修长集换式扇形手牌 */
+    /* 底部修长集换式扇形手牌（严格锁定高度上限，彻底防止SVG撑大卡片） */
     .hand-fan-card {
-      width: 74px;
-      height: 108px;
+      width: clamp(54px, 7.6vw, 94px);
+      height: clamp(78px, 23vh, 132px);
+      max-width: 94px;
+      max-height: 132px;
       transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
       transform-origin: bottom center;
+      touch-action: none;
+      overflow: hidden;
     }
-    @media (min-width: 768px) {
+    @media (max-height: 540px) {
       .hand-fan-card {
-        width: 82px;
-        height: 118px;
+        width: 54px;
+        height: 78px;
       }
     }
     .hand-fan-card:hover {
@@ -384,11 +388,14 @@
 
     .drag-ghost-card {
       position: fixed;
+      width: 64px;
+      height: 92px;
       pointer-events: none;
       z-index: 9998;
-      transform: translate(-50%, -50%) scale(1.08) rotate(-3deg);
+      transform: translate(-50%, -50%) scale(1.06) rotate(-3deg);
       box-shadow: 0 18px 36px rgba(220, 38, 38, 0.9), 0 0 22px rgba(251, 191, 36, 0.8);
       opacity: 0.95;
+      overflow: hidden;
     }
 
     /* 卡牌细节：暗金/暗红双层边框 + 水墨插画 */
@@ -404,22 +411,21 @@
       max-height: 100%;
       min-height: 0;
     }
-    .board-unit-card .card-art-frame {
-      min-height: 0;
-      flex: 1 1 0%;
-    }
-    .board-unit-card .card-art-frame svg,
-    .board-unit-card .card-art-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
     .card-art-frame {
       background: radial-gradient(circle at 50% 35%, #2a2425 0%, #0a0708 88%);
       border: 1px solid rgba(153, 27, 27, 0.6);
       position: relative;
       overflow: hidden;
       min-height: 0;
+      flex: 1 1 0%;
+    }
+    .card-art-frame svg,
+    .card-art-frame img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .card-art-frame::after {
       content: '';
@@ -842,23 +848,23 @@
     </div>
 
     <!-- ================= 对称贴近中央双红虚线的三排竖向卡牌战桌 ================= -->
-    <div id="game-screen" class="hidden flex-1 w-full h-full grid grid-rows-[25%_25%_50%] gap-0 px-2.5 py-1.5 relative z-10 overflow-hidden">
+    <div id="game-screen" class="hidden flex-1 w-full h-full grid grid-rows-[25%_24%_51%] gap-0 px-2 sm:px-4 py-1.5 relative z-10 overflow-hidden">
 
       <!-- 顶部栏：敌方阵地垂直居中于顶部边缘与上方红虚线之间，紧贴前线上沿 -->
-      <div class="grid grid-cols-12 gap-2 items-center min-h-0 overflow-hidden pb-1">
+      <div class="grid grid-cols-12 gap-1.5 sm:gap-3 items-center min-h-0 overflow-hidden pb-1">
         <div class="col-span-3 flex flex-col gap-1 min-h-0 self-start pt-0.5">
-          <div class="hud-corner-card rounded-lg p-1.5 flex items-center gap-2">
-            <div class="w-7 h-7 rounded bg-stone-900 border border-red-700/80 flex items-center justify-center text-sm shrink-0">👤</div>
+          <div class="hud-corner-card rounded-lg p-1.5 lg:p-2.5 flex items-center gap-2">
+            <div class="w-7 h-7 lg:w-10 lg:h-10 rounded bg-stone-900 border border-red-700/80 flex items-center justify-center text-sm lg:text-lg shrink-0">👤</div>
             <div class="min-w-0 flex-1">
-              <div class="text-[11px] font-bold text-stone-100 truncate" id="enemy-name">91917878</div>
-              <div class="text-[9px] text-stone-300 font-cinzel">
+              <div class="text-[11px] lg:text-sm font-bold text-stone-100 truncate" id="enemy-name">91917878</div>
+              <div class="text-[9px] lg:text-xs text-stone-300 font-cinzel">
                 复苏 <span id="enemy-mana" class="text-red-300 font-bold">1/1</span> · 反噬 <span id="enemy-resurgence" class="text-red-400">0%</span>
               </div>
               <div id="enemy-mana-diamonds" class="flex items-center gap-1 mt-0.5 flex-wrap"></div>
             </div>
           </div>
           <div class="flex items-center gap-2 px-1">
-            <div class="px-1.5 py-0.5 rounded bg-black/80 border border-red-950 text-[9px] text-stone-300 font-cinzel">
+            <div class="px-1.5 lg:px-2.5 py-0.5 rounded bg-black/80 border border-red-950 text-[9px] lg:text-xs text-stone-300 font-cinzel">
               牌库 <strong id="enemy-deck-count" class="text-amber-300">16</strong> · 手牌 <strong id="enemy-hand-count" class="text-stone-100">4</strong>
             </div>
           </div>
@@ -866,14 +872,14 @@
 
         <!-- 敌方5格竖向卡牌阵地（居中总部+左右各2张竖向部署卡位，贴近上方红虚线） -->
         <div class="col-span-6 h-full min-h-0 flex items-end justify-center pb-0.5">
-          <div class="flex items-center justify-center gap-2 sm:gap-2.5">
+          <div class="flex items-center justify-center gap-1.5 sm:gap-2 lg:gap-3.5">
             <div id="enemy-support-0" class="card-aspect-slot overflow-hidden"></div>
             <div id="enemy-support-1" class="card-aspect-slot overflow-hidden"></div>
             <div id="enemy-hq-box" onclick="handleTargetClick('enemy_hq')"
-                 class="card-aspect-slot hq-card-slot rounded-lg p-1 flex flex-col justify-between cursor-pointer transition select-none">
-              <div class="text-[9px] text-center text-red-300/95 font-bold truncate">敌方总部</div>
+                 class="card-aspect-slot hq-card-slot rounded-lg p-1 lg:p-1.5 flex flex-col justify-between cursor-pointer transition select-none">
+              <div class="text-[8px] lg:text-[11px] text-center text-red-300/95 font-bold truncate">敌方总部</div>
               <div class="flex-1 min-h-0 flex items-center justify-center">
-                <svg class="w-7 h-7 text-red-500/90 drop-shadow" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2">
+                <svg class="w-6 h-6 lg:w-10 lg:h-10 text-red-500/90 drop-shadow" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2">
                   <path d="M8 24 L32 10 L56 24" stroke-linecap="round"/>
                   <path d="M14 24 V54 H50 V24"/>
                   <rect x="25" y="34" width="14" height="20" fill="rgba(185,28,28,0.4)"/>
@@ -882,8 +888,8 @@
                 </svg>
               </div>
               <div class="flex items-center justify-between bg-black/85 rounded px-1 py-0.5 border border-red-900/70">
-                <span class="text-[8px] text-stone-400">总署</span>
-                <span id="enemy-hp" class="badge-hp text-[10px] font-black px-1.5 rounded text-white font-cinzel">20</span>
+                <span class="text-[7px] lg:text-[10px] text-stone-400">总署</span>
+                <span id="enemy-hp" class="badge-hp text-[9px] lg:text-xs font-black px-1.5 rounded text-white font-cinzel">20</span>
               </div>
             </div>
             <div id="enemy-support-2" class="card-aspect-slot overflow-hidden"></div>
@@ -892,13 +898,13 @@
         </div>
 
         <div class="col-span-3 flex flex-col items-end gap-1 min-h-0 self-start pt-0.5">
-          <div class="hud-corner-card rounded-lg px-2 py-1 flex items-center justify-between gap-1.5 w-full">
-            <span id="turn-indicator" class="text-[11px] font-black text-amber-200 tracking-wide truncate">第 1 回合 · 本方回合</span>
-            <span id="frontline-owner-badge" class="text-[9px] px-1.5 py-0.5 rounded bg-red-950/90 text-red-300 border border-red-800/70 shrink-0">
+          <div class="hud-corner-card rounded-lg px-2 py-1 lg:px-3 lg:py-1.5 flex items-center justify-between gap-1.5 w-full">
+            <span id="turn-indicator" class="text-[10px] lg:text-xs font-black text-amber-200 tracking-wide truncate">第 1 回合 · 本方回合</span>
+            <span id="frontline-owner-badge" class="text-[8px] lg:text-[11px] px-1.5 py-0.5 rounded bg-red-950/90 text-red-300 border border-red-800/70 shrink-0">
               前线无主
             </span>
           </div>
-          <div class="w-full rounded-lg bg-black/75 border border-stone-700/80 px-2 py-1 text-[9px] text-stone-300 leading-tight shadow-inner">
+          <div class="w-full rounded-lg bg-black/75 border border-stone-700/80 px-2 py-1 lg:px-3 lg:py-1.5 text-[8px] lg:text-xs text-stone-300 leading-tight shadow-inner">
             <div>拖动/点击部署至阵地 · 消耗⚡推进前线</div>
             <div class="text-amber-300/90">选中或拖动我方单位可直击红框敌方角色</div>
           </div>
@@ -906,54 +912,54 @@
       </div>
 
       <!-- 中央战区：左侧【效果发动区】 + 正中央5格竖向【前线】 + 右侧【效果发动区】 + 最右【≡ 操作】 -->
-      <div class="grid grid-cols-12 gap-2 items-center min-h-0 overflow-hidden">
-        <div class="col-span-2 h-full min-h-0 flex items-center justify-center pl-1">
+      <div class="grid grid-cols-12 gap-1.5 sm:gap-3 items-center min-h-0 overflow-hidden">
+        <div class="col-span-2 h-full min-h-0 flex items-center justify-center pl-0.5">
           <div id="effect-zone-left" onclick="handleEffectZoneClick()"
                class="effect-zone-box w-full h-[84%] rounded-xl flex flex-col items-center justify-center cursor-pointer p-1 text-center">
-            <span class="text-[9px] text-stone-400">效果</span>
-            <span class="text-xs font-black text-stone-200 tracking-wider mt-0.5">效果发动区</span>
+            <span class="text-[8px] lg:text-xs text-stone-400">效果</span>
+            <span class="text-[11px] lg:text-base font-black text-stone-200 tracking-wider mt-0.5">效果发动区</span>
           </div>
         </div>
 
         <div id="frontline-container" class="col-span-8 h-full min-h-0 frontline-zone rounded-lg px-2 py-1 flex items-center justify-center">
-          <div id="frontline-row" class="flex items-center justify-center gap-2 sm:gap-2.5"></div>
+          <div id="frontline-row" class="flex items-center justify-center gap-1.5 sm:gap-2 lg:gap-3.5"></div>
         </div>
 
         <div class="col-span-2 h-full min-h-0 flex items-center gap-1 pr-0.5">
           <div id="effect-zone-right" onclick="handleEffectZoneClick()"
                class="effect-zone-box flex-1 h-[84%] rounded-xl flex flex-col items-center justify-center cursor-pointer p-1 text-center">
-            <span class="text-xs font-black text-stone-200 tracking-wider">效果发动区</span>
-            <span class="text-[9px] text-stone-400 mt-0.5">拖入施放</span>
+            <span class="text-[11px] lg:text-base font-black text-stone-200 tracking-wider">效果发动区</span>
+            <span class="text-[8px] lg:text-xs text-stone-400 mt-0.5">拖入施放</span>
           </div>
           <button onclick="toggleActionDrawer()"
-                  class="w-7 h-[78%] rounded-l-lg bg-stone-900/95 border border-r-0 border-red-800/80 flex flex-col items-center justify-center text-[10px] text-stone-200 hover:bg-red-950 shadow-lg shrink-0">
+                  class="w-6 lg:w-8 h-[78%] rounded-l-lg bg-stone-900/95 border border-r-0 border-red-800/80 flex flex-col items-center justify-center text-[9px] lg:text-xs text-stone-200 hover:bg-red-950 shadow-lg shrink-0">
             <span class="text-xs leading-none mb-1">≡</span>
-            <span class="text-[10px] tracking-widest">操作</span>
+            <span class="text-[9px] lg:text-xs tracking-widest">操作</span>
           </button>
         </div>
       </div>
 
       <!-- 底部区域：我方5格竖向阵地紧贴下方红虚线，下方与底部扇形手牌保持对称距离 -->
-      <div class="grid grid-cols-12 gap-2 items-end min-h-0 pt-1 pb-1 overflow-hidden">
+      <div class="grid grid-cols-12 gap-1.5 sm:gap-3 items-end min-h-0 pt-1 pb-1 overflow-hidden">
         <!-- 左下角：我方驭鬼者信息 -->
         <div class="col-span-3 h-full min-h-0 flex flex-col justify-end">
-          <div class="hud-corner-card rounded-lg p-1.5">
+          <div class="hud-corner-card rounded-lg p-1.5 lg:p-2.5">
             <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded bg-red-950/70 border border-red-500/80 flex items-center justify-center text-base shrink-0">
+              <div class="w-7 h-7 lg:w-10 lg:h-10 rounded bg-red-950/70 border border-red-500/80 flex items-center justify-center text-sm lg:text-lg shrink-0">
                 👁️
               </div>
               <div class="min-w-0 flex-1">
-                <div class="text-[11px] font-bold text-stone-100 truncate" id="player-name">大昌市·杨间</div>
-                <div class="text-[9px] text-stone-300 font-cinzel">
+                <div class="text-[11px] lg:text-sm font-bold text-stone-100 truncate" id="player-name">大昌市·杨间</div>
+                <div class="text-[9px] lg:text-xs text-stone-300 font-cinzel">
                   复苏 <span id="player-mana" class="text-rose-400 font-bold">1/1</span> · 反噬 <span id="player-resurgence" class="text-red-400 font-bold">0%</span>
                 </div>
                 <div id="player-mana-diamonds" class="flex items-center gap-1 mt-0.5 flex-wrap"></div>
               </div>
             </div>
-            <div class="w-full h-1 bg-black/90 rounded-full overflow-hidden mt-1" title="厉鬼复苏度：100%将触发厉鬼反噬">
+            <div class="w-full h-1 lg:h-1.5 bg-black/90 rounded-full overflow-hidden mt-1" title="厉鬼复苏度：100%将触发厉鬼反噬">
               <div id="player-resurgence-bar" class="h-full bg-gradient-to-r from-red-700 via-rose-500 to-amber-400 transition-all duration-300" style="width: 0%"></div>
             </div>
-            <div class="flex items-center justify-between text-[9px] text-stone-400 mt-1">
+            <div class="flex items-center justify-between text-[9px] lg:text-xs text-stone-400 mt-1">
               <span>手牌 <strong id="player-hand-count" class="text-stone-200">4</strong></span>
               <span>牌库 <strong id="player-deck-count" class="text-stone-200">16</strong></span>
             </div>
@@ -963,14 +969,14 @@
         <!-- 中间核心列：上方紧贴下方红虚线的我方5格竖向阵地 + 下方修长集换式扇形手牌 -->
         <div class="col-span-7 h-full min-h-0 flex flex-col justify-between">
           <!-- 我方5格竖向阵地（紧贴下方红虚线，与敌方阵地完全镜像对称） -->
-          <div class="flex items-center justify-center gap-2 sm:gap-2.5 shrink-0 pt-0.5">
+          <div class="flex items-center justify-center gap-1.5 sm:gap-2 lg:gap-3.5 shrink-0 pt-0.5">
             <div id="player-support-0" class="card-aspect-slot overflow-hidden"></div>
             <div id="player-support-1" class="card-aspect-slot overflow-hidden"></div>
             <div id="player-hq-box" onclick="handlePlayerHqClick()"
-                 class="card-aspect-slot hq-card-slot-player rounded-lg p-1 flex flex-col justify-between cursor-pointer transition select-none">
-              <div class="text-[9px] text-center text-amber-300/95 font-bold truncate">我方总部</div>
+                 class="card-aspect-slot hq-card-slot-player rounded-lg p-1 lg:p-1.5 flex flex-col justify-between cursor-pointer transition select-none">
+              <div class="text-[8px] lg:text-[11px] text-center text-amber-300/95 font-bold truncate">我方总部</div>
               <div class="flex-1 min-h-0 flex items-center justify-center">
-                <svg class="w-7 h-7 text-amber-400/90 drop-shadow" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2">
+                <svg class="w-6 h-6 lg:w-10 lg:h-10 text-amber-400/90 drop-shadow" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2">
                   <path d="M8 24 L32 10 L56 24" stroke-linecap="round"/>
                   <path d="M14 24 V54 H50 V24"/>
                   <rect x="25" y="34" width="14" height="20" fill="rgba(245,158,11,0.32)"/>
@@ -979,8 +985,8 @@
                 </svg>
               </div>
               <div class="flex items-center justify-between bg-black/85 rounded px-1 py-0.5 border border-red-900/70">
-                <span class="text-[8px] text-stone-400">总署</span>
-                <span id="player-hp" class="badge-hp text-[10px] font-black px-1.5 rounded text-white font-cinzel">20</span>
+                <span class="text-[7px] lg:text-[10px] text-stone-400">总署</span>
+                <span id="player-hp" class="badge-hp text-[9px] lg:text-xs font-black px-1.5 rounded text-white font-cinzel">20</span>
               </div>
             </div>
             <div id="player-support-2" class="card-aspect-slot overflow-hidden"></div>
@@ -988,20 +994,20 @@
           </div>
 
           <!-- 底部修长集换式扇形重叠手牌区 -->
-          <div id="player-hand" class="flex-1 min-h-0 flex items-end justify-center px-2 pt-2 pb-0.5 overflow-visible"></div>
+          <div id="player-hand" class="flex-1 min-h-0 flex items-end justify-center px-1 pt-1 pb-0.5 overflow-visible"></div>
         </div>
 
         <!-- 右下角：结束回合按钮 + 【弃牌区】 -->
-        <div class="col-span-2 h-full min-h-0 flex flex-col justify-end gap-2 items-end pl-1">
+        <div class="col-span-2 h-full min-h-0 flex flex-col justify-end gap-1.5 lg:gap-2.5 items-end pl-0.5">
           <button id="btn-end-turn" onclick="endPlayerTurn()"
-                  class="w-full py-2 px-2 rounded-lg font-black text-xs bg-gradient-to-b from-red-700 to-red-950 hover:from-red-600 hover:to-red-900 text-stone-100 shadow-lg border border-red-500/80 transition active:scale-95 shrink-0">
+                  class="w-full py-1.5 lg:py-2.5 px-2 rounded-lg font-black text-[11px] lg:text-sm bg-gradient-to-b from-red-700 to-red-950 hover:from-red-600 hover:to-red-900 text-stone-100 shadow-lg border border-red-500/80 transition active:scale-95 shrink-0">
             结束回合
           </button>
 
           <div id="discard-zone-box" onclick="handleDiscardZoneClick()"
                class="discard-zone-box w-full h-[54%] rounded-xl flex flex-col items-center justify-center p-1 cursor-pointer text-center">
-            <span class="text-xs font-black text-stone-200 tracking-wider">弃牌区</span>
-            <span id="discard-count-label" class="text-[9px] text-stone-400 mt-0.5">拖入置换 (-5%反噬)</span>
+            <span class="text-[11px] lg:text-base font-black text-stone-200 tracking-wider">弃牌区</span>
+            <span id="discard-count-label" class="text-[8px] lg:text-xs text-stone-400 mt-0.5">拖入置换 (-5%反噬)</span>
           </div>
         </div>
       </div>
@@ -1192,92 +1198,281 @@
     initFirebase();
 
     // =========================================================================
-    // 段位系统
+    // 拖拽手牌与拖拽场上单位系统（统一 Pointer 事件，彻底杜绝手机端长按重复克隆卡片）
     // =========================================================================
-    const RANK_TIERS = [
-      { name: '凡躯', stars: 2, icon: '👁️' },
-      { name: '驭鬼', stars: 2, icon: '🩸' },
-      { name: '平衡', stars: 3, icon: '☯️' },
-      { name: '死机', stars: 3, icon: '⛓️' },
-      { name: '异类', stars: 3, icon: '👤' },
-      { name: '替补队长', stars: 3, icon: '🛡️' },
-      { name: '普通队长', stars: 3, icon: '⚔️' },
-      { name: '先锋队长', stars: 3, icon: '🔥' },
-      { name: '执法队长', stars: 3, icon: '👑' }
-    ];
+    let dragState = null;
 
-    let playerCareer = JSON.parse(localStorage.getItem('mr_kards_career') || '{"tierIdx":0,"subStar":0,"wins":0,"losses":0,"maxTierIdx":0}');
-    function saveCareer() {
-      localStorage.setItem('mr_kards_career', JSON.stringify(playerCareer));
-      updateLobbyRankUI();
+    function clearAllDragGhosts() {
+      document.querySelectorAll('.drag-ghost-card').forEach((el) => el.remove());
     }
 
+    window.startCardDrag = (e, handIdx) => {
+      if (!isMyTurn()) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (dragState) return;
+      e.preventDefault();
+
+      clearAllDragGhosts();
+      const pointerId = e.pointerId;
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      const cardId = gameState.player.hand[handIdx];
+      const card = CARD_DB[cardId];
+      if (!card) return;
+
+      dragState = {
+        mode: 'hand',
+        pointerId,
+        handIdx,
+        card,
+        startX: clientX,
+        startY: clientY,
+        moved: false,
+        ghostEl: null
+      };
+
+      const onMove = (ev) => {
+        if (!dragState || ev.pointerId !== dragState.pointerId) return;
+        const cx = ev.clientX;
+        const cy = ev.clientY;
+        const dist = Math.hypot(cx - dragState.startX, cy - dragState.startY);
+        if (!dragState.moved && dist > 12) {
+          dragState.moved = true;
+          clearAllDragGhosts();
+          selection = { source: 'hand', index: dragState.handIdx, card: dragState.card };
+          renderAll();
+
+          const ghost = document.createElement('div');
+          ghost.className = 'drag-ghost-card kards-card rounded-lg p-1 flex flex-col justify-between';
+          ghost.innerHTML = `
+            <div class="flex justify-between shrink-0"><span class="badge-cost w-4 h-4 rounded text-[10px] flex items-center justify-center font-bold">${dragState.card.cost}</span></div>
+            <div class="card-art-frame rounded flex-1 my-0.5">${getCardArtworkHTML(dragState.card.id, dragState.card.icon)}</div>
+            <div class="text-[9px] text-center font-bold text-amber-200 truncate shrink-0">${dragState.card.name.split('·').pop()}</div>
+          `;
+          document.body.appendChild(ghost);
+          dragState.ghostEl = ghost;
+        }
+        if (dragState.ghostEl) {
+          dragState.ghostEl.style.left = `${cx}px`;
+          dragState.ghostEl.style.top = `${cy}px`;
+          if (Math.random() < 0.65) spawnTrailSpark(cx, cy);
+        }
+      };
+
+      const onEnd = (ev) => {
+        if (!dragState || ev.pointerId !== dragState.pointerId) return;
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onEnd);
+        window.removeEventListener('pointercancel', onEnd);
+
+        const wasMoved = dragState.moved;
+        const idx = dragState.handIdx;
+        const cardObj = dragState.card;
+        if (dragState.ghostEl) dragState.ghostEl.remove();
+        clearAllDragGhosts();
+
+        const endX = ev.clientX;
+        const endY = ev.clientY;
+        dragState = null;
+
+        if (!wasMoved) {
+          selectHandCard(idx);
+          return;
+        }
+
+        const hitEl = document.elementFromPoint(endX, endY);
+        if (!hitEl) { cancelSelection(); return; }
+
+        if (hitEl.closest('#player-hand')) {
+          cancelSelection();
+          showToast('已拖回手牌，取消发动');
+          return;
+        }
+        if (hitEl.closest('#discard-zone-box')) {
+          discardHandCard(idx);
+          return;
+        }
+        if (hitEl.closest('#effect-zone-left') || hitEl.closest('#effect-zone-right')) {
+          if (cardObj.type === 'order') handleEffectZoneClick();
+          else { cancelSelection(); showToast('单位卡请拖动到我方总部两侧的虚线部署位！'); }
+          return;
+        }
+        const pSlot = hitEl.closest('[data-player-support]');
+        if (pSlot) { handlePlayerSupportSlotClick(Number(pSlot.dataset.playerSupport)); return; }
+
+        const fSlot = hitEl.closest('[data-frontline-slot]');
+        if (fSlot) { handleFrontlineSlotClick(Number(fSlot.dataset.frontlineSlot)); return; }
+
+        const eSlot = hitEl.closest('[data-enemy-support]');
+        if (eSlot) { handleEnemySupportSlotClick(Number(eSlot.dataset.enemySupport)); return; }
+
+        if (hitEl.closest('#player-hq-box')) { handlePlayerHqClick(); return; }
+
+        cancelSelection();
+        showToast('未拖入有效目标，已取消操作');
+      };
+
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onEnd);
+      window.addEventListener('pointercancel', onEnd);
+    };
+
+    window.startBoardUnitDrag = (e, zone, index) => {
+      if (!isMyTurn()) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (dragState) return;
+      e.preventDefault();
+
+      clearAllDragGhosts();
+      const pointerId = e.pointerId;
+      const unit = zone === 'support' ? gameState.player.support[index] : gameState.frontline[index];
+      if (!unit) return;
+
+      dragState = {
+        mode: 'board',
+        pointerId,
+        zone,
+        index,
+        unit,
+        startX: e.clientX,
+        startY: e.clientY,
+        moved: false,
+        ghostEl: null
+      };
+
+      const onMove = (ev) => {
+        if (!dragState || ev.pointerId !== dragState.pointerId) return;
+        const cx = ev.clientX;
+        const cy = ev.clientY;
+        const dist = Math.hypot(cx - dragState.startX, cy - dragState.startY);
+        if (!dragState.moved && dist > 12) {
+          dragState.moved = true;
+          clearAllDragGhosts();
+          selection = { source: 'board', zone: dragState.zone, index: dragState.index, unit: dragState.unit };
+          renderAll();
+
+          const ghost = document.createElement('div');
+          ghost.className = 'drag-ghost-card kards-card rounded-lg p-1 flex flex-col justify-between';
+          ghost.innerHTML = `
+            <div class="flex justify-between shrink-0"><span class="badge-op text-[9px] px-1 rounded font-bold">⚡${dragState.unit.opCost}</span></div>
+            <div class="card-art-frame rounded flex-1 my-0.5">${getCardArtworkHTML(dragState.unit.cardId, dragState.unit.icon)}</div>
+            <div class="text-[9px] text-center font-bold text-rose-200 truncate shrink-0">${dragState.unit.name.split('·').pop()}</div>
+          `;
+          document.body.appendChild(ghost);
+          dragState.ghostEl = ghost;
+        }
+        if (dragState.ghostEl) {
+          dragState.ghostEl.style.left = `${cx}px`;
+          dragState.ghostEl.style.top = `${cy}px`;
+          if (Math.random() < 0.65) spawnTrailSpark(cx, cy);
+        }
+      };
+
+      const onEnd = (ev) => {
+        if (!dragState || ev.pointerId !== dragState.pointerId) return;
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onEnd);
+        window.removeEventListener('pointercancel', onEnd);
+
+        const wasMoved = dragState.moved;
+        const srcZone = dragState.zone;
+        const srcIdx = dragState.index;
+        if (dragState.ghostEl) dragState.ghostEl.remove();
+        clearAllDragGhosts();
+
+        const endX = ev.clientX;
+        const endY = ev.clientY;
+        dragState = null;
+
+        if (!wasMoved) {
+          if (srcZone === 'support') handlePlayerSupportSlotClick(srcIdx);
+          else handleFrontlineSlotClick(srcIdx);
+          return;
+        }
+
+        const hitEl = document.elementFromPoint(endX, endY);
+        if (!hitEl) { cancelSelection(); return; }
+
+        const fSlot = hitEl.closest('[data-frontline-slot]');
+        if (fSlot) { handleFrontlineSlotClick(Number(fSlot.dataset.frontlineSlot)); return; }
+
+        const eSlot = hitEl.closest('[data-enemy-support]');
+        if (eSlot) { handleEnemySupportSlotClick(Number(eSlot.dataset.enemySupport)); return; }
+
+        if (hitEl.closest('#enemy-hq-box')) { handleTargetClick('enemy_hq'); return; }
+
+        cancelSelection();
+      };
+
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onEnd);
+      window.addEventListener('pointercancel', onEnd);
+    };
+
+    // =========================================================================
+    // 段位系统与本地存档初始化
+    // =========================================================================
+    const RANK_TIERS = ['凡躯', '驭鬼', '平衡', '死机', '异类', '替补队长', '普通队长', '先锋队长', '执法队长'];
+    let playerCareer = JSON.parse(localStorage.getItem('mr_kards_career') || '{"tierIdx":0,"subStar":0,"wins":0,"losses":0,"highestIdx":0,"highestSub":0}');
+
     function getRankDisplay(tierIdx, subStar) {
-      const tier = RANK_TIERS[Math.min(RANK_TIERS.length - 1, Math.max(0, tierIdx))];
-      const roman = subStar === 0 ? 'II' : (subStar === 1 ? 'I' : '巅峰');
-      const starStr = Array.from({ length: tier.stars }, (_, i) => (i < subStar ? '★' : '☆')).join(' ');
-      return { fullName: `${tier.name} ${roman}`, starStr, tier };
+      const name = RANK_TIERS[Math.min(RANK_TIERS.length - 1, Math.max(0, tierIdx))];
+      const numeral = subStar >= 1 ? 'I' : 'II';
+      const starStr = subStar >= 1 ? '★ ☆' : '☆ ☆';
+      return { name, numeral, fullName: `${name} ${numeral}`, starStr };
     }
 
     function updateLobbyRankUI() {
-      const info = getRankDisplay(playerCareer.tierIdx, playerCareer.subStar);
-      const maxInfo = getRankDisplay(playerCareer.maxTierIdx, 0);
-      const hLabel = document.getElementById('header-rank-label');
-      const lTitle = document.getElementById('lobby-rank-title');
-      const lStars = document.getElementById('lobby-rank-stars');
-      if (hLabel) hLabel.textContent = info.fullName;
-      if (lTitle) lTitle.textContent = info.fullName.split('').join(' ');
-      if (lStars) lStars.textContent = info.starStr;
+      const cur = getRankDisplay(playerCareer.tierIdx, playerCareer.subStar);
+      const hi = getRankDisplay(playerCareer.highestIdx, playerCareer.highestSub);
+      const headerEl = document.getElementById('header-rank-label');
+      const lobbyTitle = document.getElementById('lobby-rank-title');
+      const lobbyStars = document.getElementById('lobby-rank-stars');
+      if (headerEl) headerEl.textContent = cur.fullName;
+      if (lobbyTitle) lobbyTitle.textContent = `${cur.name.split('').join(' ')} ${cur.numeral}`;
+      if (lobbyStars) lobbyStars.textContent = cur.starStr;
 
       const dName = document.getElementById('rank-detail-name');
       const dStars = document.getElementById('rank-detail-stars');
-      const wCount = document.getElementById('rank-wins-count');
-      const lCount = document.getElementById('rank-losses-count');
-      const hName = document.getElementById('rank-highest-name');
-      if (dName) dName.textContent = info.fullName.split('').join(' ');
-      if (dStars) dStars.textContent = info.starStr;
-      if (wCount) wCount.textContent = playerCareer.wins;
-      if (lCount) lCount.textContent = playerCareer.losses;
-      if (hName) hName.textContent = maxInfo.fullName;
+      const wEl = document.getElementById('rank-wins-count');
+      const lEl = document.getElementById('rank-losses-count');
+      const hEl = document.getElementById('rank-highest-name');
+      if (dName) dName.textContent = `${cur.name.split('').join(' ')} ${cur.numeral}`;
+      if (dStars) dStars.textContent = cur.starStr;
+      if (wEl) wEl.textContent = playerCareer.wins;
+      if (lEl) lEl.textContent = playerCareer.losses;
+      if (hEl) hEl.textContent = hi.fullName;
 
       const ladderRow = document.getElementById('rank-ladder-row');
       if (ladderRow) {
-        ladderRow.innerHTML = RANK_TIERS.map((t, idx) => {
-          const isCurrent = idx === playerCareer.tierIdx;
-          const isUnlocked = idx <= playerCareer.maxTierIdx;
-          return `
-            <div class="rounded-xl p-2 border border-stone-800 bg-stone-950/80 flex flex-col items-center justify-center text-center ${isCurrent ? 'rank-node-active' : (isUnlocked ? 'opacity-90' : 'opacity-45')}">
-              <div class="w-9 h-9 rounded-full bg-stone-900 border ${isCurrent ? 'border-red-500 text-red-400' : 'border-stone-700 text-stone-400'} flex items-center justify-center text-base mb-1">
-                ${t.icon}
-              </div>
-              <div class="text-[11px] font-bold ${isCurrent ? 'text-stone-100' : 'text-stone-400'} truncate w-full">${t.name}</div>
-              <div class="text-[9px] text-amber-400/80 mt-0.5">${'☆'.repeat(t.stars)}</div>
-            </div>
-          `;
-        }).join('');
+        ladderRow.innerHTML = RANK_TIERS.map((t, idx) => `
+          <div class="rounded-xl p-2 bg-stone-950/90 border border-stone-800 flex flex-col items-center justify-center text-center ${idx === playerCareer.tierIdx ? 'rank-node-active' : 'opacity-60'}">
+            <span class="text-base mb-1">${idx <= playerCareer.tierIdx ? '👁️' : '🔒'}</span>
+            <span class="text-[10px] font-bold text-stone-200 truncate w-full">${t}</span>
+            <span class="text-[9px] text-amber-300 mt-0.5">${idx < playerCareer.tierIdx ? '★★' : (idx === playerCareer.tierIdx ? cur.starStr : '☆☆')}</span>
+          </div>
+        `).join('');
       }
     }
 
     function recordMatchResult(isWin) {
       if (isWin) {
         playerCareer.wins += 1;
-        const curTier = RANK_TIERS[playerCareer.tierIdx];
-        if (playerCareer.subStar + 1 >= curTier.stars) {
-          if (playerCareer.tierIdx + 1 < RANK_TIERS.length) {
-            playerCareer.tierIdx += 1;
-            playerCareer.subStar = 0;
-          }
-        } else {
-          playerCareer.subStar += 1;
+        playerCareer.subStar += 1;
+        if (playerCareer.subStar >= 2) {
+          playerCareer.subStar = 0;
+          playerCareer.tierIdx = Math.min(RANK_TIERS.length - 1, playerCareer.tierIdx + 1);
         }
-        if (playerCareer.tierIdx > playerCareer.maxTierIdx) {
-          playerCareer.maxTierIdx = playerCareer.tierIdx;
+        if (playerCareer.tierIdx > playerCareer.highestIdx || (playerCareer.tierIdx === playerCareer.highestIdx && playerCareer.subStar > playerCareer.highestSub)) {
+          playerCareer.highestIdx = playerCareer.tierIdx;
+          playerCareer.highestSub = playerCareer.subStar;
         }
       } else {
         playerCareer.losses += 1;
         if (playerCareer.subStar > 0) playerCareer.subStar -= 1;
       }
-      saveCareer();
+      localStorage.setItem('mr_kards_career', JSON.stringify(playerCareer));
+      updateLobbyRankUI();
     }
 
     window.openRankScreen = () => {
@@ -1285,6 +1480,7 @@
       document.getElementById('lobby-screen').classList.add('hidden');
       document.getElementById('rank-screen').classList.remove('hidden');
     };
+
     window.closeRankScreen = () => {
       document.getElementById('rank-screen').classList.add('hidden');
       document.getElementById('lobby-screen').classList.remove('hidden');
@@ -1906,191 +2102,6 @@
       document.getElementById('game-screen').classList.add('hidden');
       document.getElementById('lobby-screen').classList.remove('hidden');
       selection = null;
-    };
-
-    // =========================================================================
-    // 拖拽手牌与拖拽场上单位系统（支持拖放部署、施法、推进前线以及直接拖拽攻击敌方角色！）
-    // =========================================================================
-    let dragState = null;
-
-    window.startCardDrag = (e, handIdx) => {
-      if (!isMyTurn()) return;
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      const cardId = gameState.player.hand[handIdx];
-      const card = CARD_DB[cardId];
-
-      dragState = {
-        mode: 'hand',
-        handIdx,
-        card,
-        startX: clientX,
-        startY: clientY,
-        moved: false,
-        ghostEl: null
-      };
-
-      const onMove = (ev) => {
-        if (!dragState) return;
-        const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
-        const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
-        const dist = Math.hypot(cx - dragState.startX, cy - dragState.startY);
-        if (!dragState.moved && dist > 12) {
-          dragState.moved = true;
-          selection = { source: 'hand', index: dragState.handIdx, card: dragState.card };
-          renderAll();
-
-          const ghost = document.createElement('div');
-          ghost.className = 'drag-ghost-card kards-card w-20 h-28 rounded-lg p-1 flex flex-col justify-between';
-          ghost.innerHTML = `
-            <div class="flex justify-between"><span class="badge-cost w-4 h-4 rounded text-[10px] flex items-center justify-center font-bold">${dragState.card.cost}</span></div>
-            <div class="card-art-frame rounded flex-1 my-0.5">${getCardArtworkHTML(dragState.card.id, dragState.card.icon)}</div>
-            <div class="text-[9px] text-center font-bold text-amber-200 truncate">${dragState.card.name.split('·').pop()}</div>
-          `;
-          document.body.appendChild(ghost);
-          dragState.ghostEl = ghost;
-        }
-        if (dragState.ghostEl) {
-          dragState.ghostEl.style.left = `${cx}px`;
-          dragState.ghostEl.style.top = `${cy}px`;
-          if (Math.random() < 0.65) spawnTrailSpark(cx, cy);
-        }
-      };
-
-      const onEnd = (ev) => {
-        window.removeEventListener('mousemove', onMove);
-        window.removeEventListener('mouseup', onEnd);
-        window.removeEventListener('touchmove', onMove);
-        window.removeEventListener('touchend', onEnd);
-
-        if (!dragState) return;
-        const wasMoved = dragState.moved;
-        const idx = dragState.handIdx;
-        const cardObj = dragState.card;
-        if (dragState.ghostEl) dragState.ghostEl.remove();
-
-        const endX = ev.changedTouches ? ev.changedTouches[0].clientX : ev.clientX;
-        const endY = ev.changedTouches ? ev.changedTouches[0].clientY : ev.clientY;
-        dragState = null;
-
-        if (!wasMoved) {
-          selectHandCard(idx);
-          return;
-        }
-
-        const hitEl = document.elementFromPoint(endX, endY);
-        if (!hitEl) { cancelSelection(); return; }
-
-        if (hitEl.closest('#player-hand')) {
-          cancelSelection();
-          showToast('已拖回手牌，取消发动');
-          return;
-        }
-        if (hitEl.closest('#discard-zone-box')) {
-          discardHandCard(idx);
-          return;
-        }
-        if (hitEl.closest('#effect-zone-left') || hitEl.closest('#effect-zone-right')) {
-          if (cardObj.type === 'order') handleEffectZoneClick();
-          else { cancelSelection(); showToast('单位卡请拖动到我方总部两侧的虚线部署位！'); }
-          return;
-        }
-        const pSlot = hitEl.closest('[data-player-support]');
-        if (pSlot) { handlePlayerSupportSlotClick(Number(pSlot.dataset.playerSupport)); return; }
-
-        const fSlot = hitEl.closest('[data-frontline-slot]');
-        if (fSlot) { handleFrontlineSlotClick(Number(fSlot.dataset.frontlineSlot)); return; }
-
-        const eSlot = hitEl.closest('[data-enemy-support]');
-        if (eSlot) { handleEnemySupportSlotClick(Number(eSlot.dataset.enemySupport)); return; }
-
-        if (hitEl.closest('#player-hq-box')) { handlePlayerHqClick(); return; }
-
-        cancelSelection();
-        showToast('未拖入有效目标，已取消操作');
-      };
-
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onEnd);
-      window.addEventListener('touchmove', onMove, { passive: false });
-      window.addEventListener('touchend', onEnd);
-    };
-
-    // 拖拽我方场上单位（可直接拖到金色前线推进，或直接拖到红框敌方角色/敌方总部发动攻击！）
-    window.startBoardUnitDrag = (e, zone, index) => {
-      if (!isMyTurn()) return;
-      const unit = zone === 'support' ? gameState.player.support[index] : gameState.frontline[index];
-      if (!unit) return;
-
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      let moved = false;
-      let ghostEl = null;
-
-      const onMove = (ev) => {
-        const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
-        const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
-        if (!moved && Math.hypot(cx - clientX, cy - clientY) > 12) {
-          moved = true;
-          selection = { source: 'board', zone, index, unit };
-          renderAll();
-
-          ghostEl = document.createElement('div');
-          ghostEl.className = 'drag-ghost-card kards-card w-16 h-24 rounded-lg p-1 flex flex-col justify-between';
-          ghostEl.innerHTML = `
-            <div class="text-[8px] text-center text-amber-300 font-bold">⚔️ ${unit.name.split('·').pop()}</div>
-            <div class="card-art-frame rounded flex-1 my-0.5">${getCardArtworkHTML(unit.cardId, unit.icon)}</div>
-            <div class="text-[9px] text-center font-black text-red-400 font-cinzel">${unit.atk} / ${unit.hp}</div>
-          `;
-          document.body.appendChild(ghostEl);
-        }
-        if (ghostEl) {
-          ghostEl.style.left = `${cx}px`;
-          ghostEl.style.top = `${cy}px`;
-          if (Math.random() < 0.7) spawnTrailSpark(cx, cy);
-        }
-      };
-
-      const onEnd = (ev) => {
-        window.removeEventListener('mousemove', onMove);
-        window.removeEventListener('mouseup', onEnd);
-        window.removeEventListener('touchmove', onMove);
-        window.removeEventListener('touchend', onEnd);
-
-        if (ghostEl) ghostEl.remove();
-        const endX = ev.changedTouches ? ev.changedTouches[0].clientX : ev.clientX;
-        const endY = ev.changedTouches ? ev.changedTouches[0].clientY : ev.clientY;
-
-        if (!moved) {
-          if (zone === 'support') handlePlayerSupportSlotClick(index);
-          else handleFrontlineSlotClick(index);
-          return;
-        }
-
-        const hitEl = document.elementFromPoint(endX, endY);
-        if (!hitEl) { cancelSelection(); return; }
-
-        if (hitEl.closest('#enemy-hq-box')) {
-          handleTargetClick('enemy_hq');
-          return;
-        }
-        const eSlot = hitEl.closest('[data-enemy-support]');
-        if (eSlot) {
-          handleEnemySupportSlotClick(Number(eSlot.dataset.enemySupport));
-          return;
-        }
-        const fSlot = hitEl.closest('[data-frontline-slot]');
-        if (fSlot) {
-          handleFrontlineSlotClick(Number(fSlot.dataset.frontlineSlot));
-          return;
-        }
-        cancelSelection();
-      };
-
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onEnd);
-      window.addEventListener('touchmove', onMove, { passive: false });
-      window.addEventListener('touchend', onEnd);
     };
 
     // =========================================================================
@@ -3007,7 +3018,7 @@
           else if (owner === 'enemy' && selection.source === 'hand' && selection.card.type === 'order') highlight = 'valid-attack-target';
           else if (owner === 'player' && selection.source === 'hand' && selection.card.type === 'unit' && selection.card.keywords.includes('puzzle') && canFuseTarget(unit)) highlight = 'valid-fuse-target';
         }
-        const dragAttr = owner === 'player' ? `onmousedown="startBoardUnitDrag(event, 'frontline', ${idx})" ontouchstart="startBoardUnitDrag(event, 'frontline', ${idx})"` : `onclick="handleFrontlineSlotClick(${idx})"`;
+        const dragAttr = owner === 'player' ? `onpointerdown="startBoardUnitDrag(event, 'frontline', ${idx})"` : `onclick="handleFrontlineSlotClick(${idx})"`;
         return `<div data-frontline-slot="${idx}" ${dragAttr} class="card-aspect-slot overflow-hidden cursor-pointer">${renderUnitToken(unit, isSelected, highlight)}</div>`;
       }).join('');
     }
@@ -3030,7 +3041,7 @@
         if (isMyTurn() && selection && selection.source === 'hand' && selection.card.type === 'unit') {
           if (selection.card.keywords.includes('puzzle') && canFuseTarget(unit)) highlight = 'valid-fuse-target';
         }
-        slotEl.innerHTML = `<div onmousedown="startBoardUnitDrag(event, 'support', ${idx})" ontouchstart="startBoardUnitDrag(event, 'support', ${idx})" class="w-full h-full min-h-0 overflow-hidden cursor-pointer">${renderUnitToken(unit, isSelected, highlight)}</div>`;
+        slotEl.innerHTML = `<div onpointerdown="startBoardUnitDrag(event, 'support', ${idx})" class="w-full h-full min-h-0 overflow-hidden cursor-pointer">${renderUnitToken(unit, isSelected, highlight)}</div>`;
       });
     }
 
@@ -3042,6 +3053,7 @@
       }
       const total = gameState.player.hand.length;
       const mid = (total - 1) / 2;
+      const isDesktop = window.innerWidth >= 1280;
 
       container.innerHTML = gameState.player.hand.map((cardId, idx) => {
         const card = CARD_DB[cardId];
@@ -3051,10 +3063,10 @@
         const offset = idx - mid;
         const rotateDeg = total > 1 ? Math.max(-10, Math.min(10, offset * 2.6)) : 0;
         const translateY = Math.abs(offset) * 1.8;
-        const marginLeft = idx === 0 ? '0px' : '-10px';
+        const marginLeft = idx === 0 ? '0px' : (isDesktop ? '-4px' : '-11px');
         const fanStyle = `transform: rotate(${rotateDeg}deg) translateY(${translateY}px); margin-left: ${marginLeft}; z-index: ${10 + idx};`;
 
-        const dragHandlers = `onmousedown="startCardDrag(event, ${idx})" ontouchstart="startCardDrag(event, ${idx})"`;
+        const dragHandlers = `onpointerdown="startCardDrag(event, ${idx})" oncontextmenu="return false;"`;
         const kwTag = card.type === 'unit'
           ? (card.keywords.includes('domain') ? '鬼域' : (card.keywords.includes('blitz') ? '袭击' : (card.keywords.includes('guard') ? '守护' : (card.keywords.includes('puzzle') ? '拼图' : '驭鬼'))))
           : '指令';
